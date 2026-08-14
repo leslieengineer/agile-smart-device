@@ -1,0 +1,33 @@
+---
+# Inherit Google C++ Style Guide
+BasedOnStyle: Google
+Language: Cpp
+
+# Overrides for embedded C++:
+
+# Set maximum line length to 100 characters
+ColumnLimit: 100
+
+# Set indentation width to 4 spaces
+IndentWidth: 4
+
+# Offset access modifiers (public/private/protected) by -4 spaces to align with the class definition
+AccessModifierOffset: -4
+
+# Set C++ standard to C++14
+Standard: c++14
+
+# Align pointers and references to the left (e.g., uint8_t* data)
+PointerAlignment: Left
+
+# Align consecutive assignments
+AlignConsecutiveAssignments: true
+
+# Align consecutive declarations
+AlignConsecutiveDeclarations: true
+
+# Allow only empty functions to be written on a single line
+AllowShortFunctionsOnASingleLine: Empty
+
+# Format constructor initializer lists on one line or one per line
+ConstructorInitializerAllOnOneLineOrOnePerLine: true

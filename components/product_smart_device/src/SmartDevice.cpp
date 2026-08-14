@@ -1,9 +1,10 @@
 #include <board/Board.hpp>
+#include <services/BinarySwitchService.hpp>
 #include <smart_device/SmartDevice.hpp>
-#include <smart_device/SwitchController.hpp>
+#include <smart_device/SmartDeviceApplication.hpp>
 
 #include "SwitchRuntime.hpp"
-#include "adapters/NvsRelayStateRepository.hpp"
+#include "adapters/NvsBinaryStateStore.hpp"
 #include "nvs_flash.h"
 
 namespace smart_device {
@@ -26,11 +27,12 @@ uhal::Status start() {
     static board::Board board;
     if (board.initialize() != uhal::Status::ok) return uhal::Status::io_error;
 
-    static NvsRelayStateRepository repository;
-    static SwitchController        controller{board.relay(), board.led(), repository};
-    if (controller.restore() != uhal::Status::ok) return uhal::Status::io_error;
+    static NvsBinaryStateStore           store;
+    static services::BinarySwitchService service{board.relay(), board.led(), store};
+    static SmartDeviceApplication        application{service};
+    if (application.initialize() != uhal::Status::ok) return uhal::Status::io_error;
 
-    static SwitchRuntime runtime{board, controller};
+    static SwitchRuntime runtime{board, application};
     return runtime.start();
 }
 

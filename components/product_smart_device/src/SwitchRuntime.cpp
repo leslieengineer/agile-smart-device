@@ -12,8 +12,8 @@ constexpr std::uint32_t kTaskStack    = 3072U;
 constexpr UBaseType_t   kTaskPriority = 5U;
 }  // namespace
 
-SwitchRuntime::SwitchRuntime(board::Board& board, SwitchController& controller)
-    : board_{board}, controller_{controller} {}
+SwitchRuntime::SwitchRuntime(board::Board& board, SmartDeviceApplication& application)
+    : board_{board}, application_{application} {}
 
 uhal::Status SwitchRuntime::start() {
     queue_ = xQueueCreate(1U, sizeof(std::uint8_t));
@@ -58,8 +58,8 @@ void SwitchRuntime::run() {
                                                      : level == uhal::GpioLevel::high;
         const libraries::ButtonEvent event = button_input_.update(pressed, board_.clock().now_ms());
         if (event == libraries::ButtonEvent::short_press) {
-            const uhal::Status status = controller_.toggle();
-            if (status != uhal::Status::ok) ESP_LOGE(kTag, "Relay state persistence failed");
+            const uhal::Status status = application_.on_short_press();
+            if (status != uhal::Status::ok) ESP_LOGE(kTag, "Switch command failed");
         }
     }
 }

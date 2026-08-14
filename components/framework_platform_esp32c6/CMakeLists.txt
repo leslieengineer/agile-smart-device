@@ -7,11 +7,14 @@ idf_component_register(
     SRCS
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/low_level/system/Gpio.cpp"
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/low_level/system/SysTimer.cpp"
+        "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/low_level/system/Watchdog.cpp"
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/gpio/Esp32C6Gpio.cpp"
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/clock/Esp32C6Clock.cpp"
+        "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/watchdog/Esp32C6Watchdog.cpp"
     INCLUDE_DIRS
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/low_level/system"
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/gpio"
         "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/clock"
-    REQUIRES framework_uhal_interfaces esp_driver_gpio esp_timer freertos
+        "${FRAMEWORK_ROOT}/components/platform/esp32c6/esp_idf/adapters/watchdog"
+    REQUIRES framework_uhal_interfaces esp_driver_gpio esp_timer freertos esp_system
 )

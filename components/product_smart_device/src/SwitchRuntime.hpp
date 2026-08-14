@@ -2,7 +2,7 @@
 
 #include <board/Board.hpp>
 #include <libraries/ButtonInput.hpp>
-#include <smart_device/SwitchController.hpp>
+#include <smart_device/SmartDeviceApplication.hpp>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -12,7 +12,7 @@ namespace smart_device {
 
 class SwitchRuntime final {
 public:
-    SwitchRuntime(board::Board& board, SwitchController& controller);
+    SwitchRuntime(board::Board& board, SmartDeviceApplication& application);
     uhal::Status start();
 
 private:
@@ -21,7 +21,7 @@ private:
     void        run();
 
     board::Board&          board_;
-    SwitchController&      controller_;
+    SmartDeviceApplication& application_;
     libraries::ButtonInput button_input_{};
     QueueHandle_t          queue_ = nullptr;
     TaskHandle_t           task_  = nullptr;

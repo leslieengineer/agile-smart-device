@@ -1,4 +1,4 @@
-#include "adapters/NvsRelayStateRepository.hpp"
+#include "adapters/NvsBinaryStateStore.hpp"
 
 #include "nvs.h"
 
@@ -12,7 +12,7 @@ constexpr std::uint8_t kSchemaVersion = 1U;
 
 }  // namespace
 
-uhal::Status NvsRelayStateRepository::load(RelayState& state) {
+uhal::Status NvsBinaryStateStore::load(services::BinaryState& state) {
     nvs_handle_t handle{};
     if (nvs_open(kNamespace, NVS_READONLY, &handle) != ESP_OK) {
         return uhal::Status::io_error;
@@ -29,7 +29,7 @@ uhal::Status NvsRelayStateRepository::load(RelayState& state) {
     return uhal::Status::ok;
 }
 
-uhal::Status NvsRelayStateRepository::save(const RelayState& state) {
+uhal::Status NvsBinaryStateStore::save(const services::BinaryState& state) {
     nvs_handle_t handle{};
     if (nvs_open(kNamespace, NVS_READWRITE, &handle) != ESP_OK) {
         return uhal::Status::io_error;

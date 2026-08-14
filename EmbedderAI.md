@@ -170,9 +170,9 @@ Do đó, không nên chuyển toàn bộ devices, protocols, services, libraries
 
 - Layer 5 đã được đặt tại `components/product_smart_device` trong project gốc.
 - `main/` chỉ giữ `app_main()` và ESP-IDF logging.
-- `components/framework_uhal_core` là nơi duy nhất biết đường dẫn vật lý tới UHAL core trong submodule.
+- Các bridge `components/framework_*` là nơi duy nhất biết đường dẫn vật lý tới capability tương ứng trong submodule.
 - Framework submodule chỉ chứa capability tái sử dụng; không sở hữu product `smart_device`.
-- Logic riêng của smart device ở parent. Chỉ chuyển một component vào framework bằng thay đổi riêng sau khi đã chứng minh khả năng tái sử dụng.
+- Logic riêng của smart device ở parent; binary-switch policy tái sử dụng nằm trong framework Layer 4.
 
 ## Smart switch milestone 1
 
@@ -182,7 +182,9 @@ Implemented:
 - ESP32-C6 Layer 1 GPIO, interrupt, and system clock using ESP-IDF 6.0.2.
 - ESP32-C6 Layer 3 `OutputPin`, `InputPin`, `PinInterrupt`, and `Clock` UHAL adapters.
 - nanoESP32-C6 board mapping: button GPIO9, relay GPIO10, LED GPIO2.
-- Product `SwitchController`, NVS relay repository, FreeRTOS runtime, and safe composition order.
+- Framework Layer 4 `BinarySwitchService`; product-owned NVS state-store adapter, FreeRTOS runtime, and safe composition order.
+- Layer 5 `SmartDeviceApplication` owns vendor-neutral product use cases; runtime emits semantic events and composition owns concrete infrastructure.
+- Automated layer-boundary CTest plus AI, architecture, coding-standard, dependency, and Level 5 review rules.
 - 16 MB DIO flash configuration and 1 kHz FreeRTOS tick.
 
 Deferred: SoftAP, Wi-Fi, Web, BLE Mesh, MQTT, OTA, scenes, dimmer, multi-channel, long/double press, factory reset, and on-target hardware acceptance.
