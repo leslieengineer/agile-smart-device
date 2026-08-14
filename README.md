@@ -1,36 +1,27 @@
 # agile-smart-device
 
-ESP-IDF application for the ESP32-C6.
+ESP-IDF smart-switch firmware for nanoESP32-C6.
 
-## Prerequisites
+## Milestone 1
 
-- ESP-IDF v6.x
-- ESP32-C6 toolchain installed by ESP-IDF
-- Initialized `external/agile-firmware-framework` submodule
-
-## Clone
-
-```cmd
-git clone --recurse-submodules git@github.com:leslieengineer/agile-smart-device.git
-git submodule update --init --recursive
-```
+- One active-high relay on GPIO10.
+- Active-low button with pull-up on GPIO9.
+- Active-high status LED on GPIO2 mirrors the relay.
+- Debounced short press toggles the relay.
+- Relay state is restored from NVS after reboot.
+- 16 MB flash, ESP-IDF v6.0.2.
 
 ## Architecture
 
-- `main` provides `app_main()` and platform logging.
-- `components/product_smart_device` owns the Layer 5 composition root.
-- `components/framework_uhal_core` bridges the product to framework UHAL core.
-- `external/agile-firmware-framework` contains reusable capabilities, not product code.
+`main` only calls the Layer 5 composition root in `product_smart_device`. Product policy and NVS schema live in this repository. Reusable button logic, UHAL contracts, and ESP32-C6 Layer 1/3 adapters live in the framework submodule and are imported through selective bridge components.
 
-Additional framework capabilities must be imported through dedicated bridge components rather than direct include paths in product code. Product-specific board configuration and services stay in this repository.
+GPIO9 is a strapping pin; holding it during reset enters download mode. GPIO10 requires external fail-safe bias in the relay circuit so the relay remains off before firmware initialization.
 
-## Build on Windows
+## Build
 
 ```cmd
 call C:\Users\lesli\espv6\v6.0.2\esp-idf\export.bat
-cd /d C:\Users\lesli\WS\agile-smart-device
+git submodule update --init --recursive
 idf.py set-target esp32c6
 idf.py build
 ```
-
-The current milestone only verifies compilation. It does not flash or monitor a board.

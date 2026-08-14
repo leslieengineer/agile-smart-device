@@ -1,3 +1,6 @@
 [submodule "external/agile-firmware-framework"]
 	path = external/agile-firmware-framework
 	url = git@github.com:leslieengineer/agile-firmware-framework.git
+[submodule "reference"]
+	path = reference
+	url = git@github.com:leslieengineer/RhoPhi_Smart_Home_ESP32_FW.git

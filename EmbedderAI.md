@@ -173,3 +173,16 @@ Do đó, không nên chuyển toàn bộ devices, protocols, services, libraries
 - `components/framework_uhal_core` là nơi duy nhất biết đường dẫn vật lý tới UHAL core trong submodule.
 - Framework submodule chỉ chứa capability tái sử dụng; không sở hữu product `smart_device`.
 - Logic riêng của smart device ở parent. Chỉ chuyển một component vào framework bằng thay đổi riêng sau khi đã chứng minh khả năng tái sử dụng.
+
+## Smart switch milestone 1
+
+Implemented:
+
+- Framework pure `ButtonInput` debounce and short-press classifier with host tests.
+- ESP32-C6 Layer 1 GPIO, interrupt, and system clock using ESP-IDF 6.0.2.
+- ESP32-C6 Layer 3 `OutputPin`, `InputPin`, `PinInterrupt`, and `Clock` UHAL adapters.
+- nanoESP32-C6 board mapping: button GPIO9, relay GPIO10, LED GPIO2.
+- Product `SwitchController`, NVS relay repository, FreeRTOS runtime, and safe composition order.
+- 16 MB DIO flash configuration and 1 kHz FreeRTOS tick.
+
+Deferred: SoftAP, Wi-Fi, Web, BLE Mesh, MQTT, OTA, scenes, dimmer, multi-channel, long/double press, factory reset, and on-target hardware acceptance.
