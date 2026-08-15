@@ -136,7 +136,7 @@ Classes:
 The parent project imports these files through:
 
 ```text
-components/framework_platform_esp32c6/CMakeLists.txt
+imports/common/components/framework_platform_esp32c6/CMakeLists.txt
 ```
 
 ## Board configuration
@@ -216,32 +216,15 @@ The current firmware does **not** instantiate every service. Product composition
 
 ## Framework bridges
 
-ESP-IDF discovers parent `components/` automatically. Bridge components compile selected framework sources from the submodule without copying them.
+ESP-IDF discovers only the bridge groups selected by `PRODUCT_PROFILE`. Bridges compile framework sources from the submodule without copying them.
 
 ```text
-components/framework_uhal_core/
-components/framework_uhal_interfaces/
-components/framework_platform_esp32c6/
-components/framework_button/
-components/framework_binary_switch/
-components/framework_libraries/
-components/framework_services_types/
-components/framework_configuration/
-components/framework_security_policy/
-components/framework_network_manager/
-components/framework_provisioning/
-components/framework_indication/
-components/framework_messaging/
-components/framework_mqtt_contract/
-components/framework_offline_queue/
-components/framework_telemetry/
-components/framework_command_dispatcher/
-components/framework_time_sync/
-components/framework_diagnostics/
-components/framework_health_monitor/
+imports/common/components/          UHAL core/interfaces and ESP32-C6 platform
+imports/local_switch/components/    ButtonInput and BinarySwitchService
+imports/gateway_node/components/    Optional network/messaging/operations services
 ```
 
-There is intentionally no `framework_ota_manager` bridge in the current single-application product profile.
+`local_switch` imports common + local-switch groups. `gateway_node` additionally imports the gateway group. Unselected bridges are not discovered or compiled. There is intentionally no `framework_ota_manager` bridge in the current single-application profiles.
 
 ## Layer 5 — Product/application/runtime
 
@@ -256,10 +239,13 @@ components/product_smart_device/
 │  ├─ SmartDevice.hpp
 │  └─ SmartDeviceApplication.hpp
 └─ src/
-   ├─ SmartDevice.cpp
-   ├─ SmartDeviceApplication.cpp
-   ├─ SwitchRuntime.hpp
-   ├─ SwitchRuntime.cpp
+   ├─ application/
+   │  └─ SmartDeviceApplication.cpp
+   ├─ composition/
+   │  └─ SmartDevice.cpp
+   ├─ runtime/
+   │  ├─ SwitchRuntime.hpp
+   │  └─ SwitchRuntime.cpp
    └─ adapters/
       ├─ NvsBinaryStateStore.hpp
       └─ NvsBinaryStateStore.cpp
@@ -409,8 +395,11 @@ agile-smart-device/
 ├─ main/                              ESP-IDF entry only
 ├─ components/
 │  ├─ board_esp32c6/                 Board facts and concrete board object
-│  ├─ product_smart_device/          Layer 5 product
-│  └─ framework_*/                   ESP-IDF bridges to reusable catalog
+│  └─ product_smart_device/          Layer 5 product
+├─ imports/
+│  ├─ common/components/             Always-selected framework bridges
+│  ├─ local_switch/components/       Local-switch capability bridges
+│  └─ gateway_node/components/       Optional Gateway capability bridges
 ├─ external/
 │  └─ agile-firmware-framework/      Layers 1–4 reusable catalog
 ├─ reference/                        Legacy behavior reference, not active architecture
@@ -427,8 +416,15 @@ agile-smart-device/
 call C:\Users\lesli\espv6\v6.0.2\esp-idf\export.bat
 git submodule update --init --recursive
 idf.py set-target esp32c6
-idf.py reconfigure
+idf.py reconfigure -DPRODUCT_PROFILE=local_switch
 idf.py build
+
+:: Optional compile-only gateway catalog profile
+idf.py reconfigure -DPRODUCT_PROFILE=gateway_node
+idf.py build
+
+:: Restore default local profile
+idf.py reconfigure -DPRODUCT_PROFILE=local_switch
 ```
 
 Framework host tests:
@@ -451,9 +447,11 @@ ctest --test-dir build --output-on-failure
 
 ## Current verification status
 
-- Framework host tests: 10/10 pass.
-- Parent host tests and architecture gates: 4/4 pass.
-- ESP-IDF 6.0.2 ESP32-C6 build: pass.
+- Framework host tests/examples: 11/11 pass.
+- Parent host tests and architecture gates: 6/6 pass.
+- ESP-IDF 6.0.2 ESP32-C6 `local_switch` profile: pass.
+- ESP-IDF 6.0.2 ESP32-C6 `gateway_node` bridge profile: pass.
+- Local profile excludes gateway bridges from component discovery.
 - Firmware size: `0x2eae0` bytes.
 - Application partition free: 88%.
 - No hardware flash/acceptance test has been run in this implementation session.

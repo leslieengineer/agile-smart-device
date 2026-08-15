@@ -1,0 +1,43 @@
+name: firmware-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+      - name: Framework tests
+        run: |
+          cmake -S external/agile-firmware-framework -B external/agile-firmware-framework/build
+          cmake --build external/agile-firmware-framework/build
+          ctest --test-dir external/agile-firmware-framework/build --output-on-failure
+      - name: Product tests and architecture gates
+        run: |
+          cmake -S tests/host -B tests/host/build
+          cmake --build tests/host/build
+          ctest --test-dir tests/host/build --output-on-failure
+
+  esp-idf-build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.0.2
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [local_switch, gateway_node]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+      - name: Build ESP32-C6 profile
+        shell: bash
+        run: |
+          idf.py set-target esp32c6
+          idf.py reconfigure -DPRODUCT_PROFILE=${{ matrix.profile }}
+          idf.py build
+          test -f build/compile_commands.json
+          idf.py size

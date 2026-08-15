@@ -6,7 +6,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 add_executable(smart_device_application_tests
     BinarySwitchCompositionTests.cpp
-    ../../components/product_smart_device/src/SmartDeviceApplication.cpp
+    ../../components/product_smart_device/src/application/SmartDeviceApplication.cpp
     ../../external/agile-firmware-framework/components/services/binary_switch/src/BinarySwitchService.cpp
 )
 target_include_directories(smart_device_application_tests PRIVATE
@@ -19,10 +19,16 @@ target_include_directories(smart_device_application_tests PRIVATE
 
 enable_testing()
 add_test(NAME smart_device_application_tests COMMAND smart_device_application_tests)
-foreach(CHECK_NAME boundaries dynamic catalog)
+foreach(CHECK_NAME boundaries dynamic catalog cmake)
     add_test(
         NAME layer_${CHECK_NAME}_check
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
                 --root ${CMAKE_CURRENT_LIST_DIR}/../.. --check ${CHECK_NAME}
     )
 endforeach()
+
+add_test(
+    NAME layer_checker_fixture_tests
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../architecture/test_layer_checker.py
+            --checker ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
+)

@@ -67,7 +67,8 @@ def check_boundaries(root: Path, errors: list[str]) -> None:
     application_files = (
         root / "components" / "product_smart_device" / "include" / "smart_device" /
         "SmartDeviceApplication.hpp",
-        root / "components" / "product_smart_device" / "src" / "SmartDeviceApplication.cpp",
+        root / "components" / "product_smart_device" / "src" / "application" /
+        "SmartDeviceApplication.cpp",
     )
     for path in application_files:
         check_includes(root, path, APPLICATION_FORBIDDEN, "Layer 5 application boundary", errors)
@@ -158,10 +159,50 @@ def check_catalog(root: Path, errors: list[str]) -> None:
                           f"target {match.group(1)} is not referenced by framework unit tests")
 
 
+def check_cmake(root: Path, errors: list[str]) -> None:
+    cmake_files = list((root / "components").glob("*/CMakeLists.txt"))
+    cmake_files.extend((root / "imports").glob("*/components/*/CMakeLists.txt"))
+    framework_components = root / "external" / "agile-firmware-framework" / "components"
+    cmake_files.extend(framework_components.rglob("CMakeLists.txt"))
+
+    source_suffixes = (".c", ".cc", ".cpp", ".cxx", ".S", ".s")
+    for cmake in cmake_files:
+        text = cmake.read_text(encoding="utf-8")
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            if re.search(r"\b(?:file\s*\(\s*)?GLOB(?:_RECURSE)?\b", line, re.IGNORECASE):
+                add_error(errors, root, cmake, line_number,
+                          "Firmware components require explicit source lists; globbing is forbidden")
+
+        for token in re.findall(r'"([^"]+)"', text):
+            if not token.endswith(source_suffixes):
+                continue
+            if token.startswith("${FRAMEWORK_ROOT}/"):
+                candidate = root / "external" / "agile-firmware-framework" / token.split("}/", 1)[1]
+            elif token.startswith("${CMAKE_CURRENT_LIST_DIR}/"):
+                candidate = cmake.parent / token.split("}/", 1)[1]
+            elif "${" in token or "$<" in token:
+                continue
+            else:
+                candidate = cmake.parent / token
+            if not candidate.resolve().is_file():
+                add_error(errors, root, cmake, 1,
+                          f"CMake source path does not exist: {token}")
+
+    product_cmake = root / "components" / "product_smart_device" / "CMakeLists.txt"
+    if product_cmake.exists():
+        text = product_cmake.read_text(encoding="utf-8")
+        if 'INCLUDE_DIRS "include"' not in text:
+            add_error(errors, root, product_cmake, 1,
+                      "Product public headers must be exported only from include/")
+        if 'PRIV_INCLUDE_DIRS "include"' in text:
+            add_error(errors, root, product_cmake, 1,
+                      "Product public include/ must not be declared private")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--check", choices=("all", "boundaries", "dynamic", "catalog"), default="all")
+    parser.add_argument("--check", choices=("all", "boundaries", "dynamic", "catalog", "cmake"), default="all")
     args = parser.parse_args()
     root = args.root.resolve()
     errors: list[str] = []
@@ -172,6 +213,8 @@ def main() -> int:
         check_dynamic_allocation(root, errors)
     if args.check in ("all", "catalog"):
         check_catalog(root, errors)
+    if args.check in ("all", "cmake"):
+        check_cmake(root, errors)
 
     if errors:
         print(f"Layer rule violations ({args.check}):")

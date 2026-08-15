@@ -1,4 +1,4 @@
-#include "adapters/NvsBinaryStateStore.hpp"
+#include "NvsBinaryStateStore.hpp"
 
 #include "nvs.h"
 

@@ -1,11 +1,11 @@
 idf_component_register(
     SRCS
-        "src/SmartDevice.cpp"
-        "src/SmartDeviceApplication.cpp"
-        "src/SwitchRuntime.cpp"
+        "src/composition/SmartDevice.cpp"
+        "src/application/SmartDeviceApplication.cpp"
+        "src/runtime/SwitchRuntime.cpp"
         "src/adapters/NvsBinaryStateStore.cpp"
     INCLUDE_DIRS "include"
-    PRIV_INCLUDE_DIRS "src"
+    PRIV_INCLUDE_DIRS "src/runtime" "src/adapters"
     REQUIRES
         framework_uhal_core
         framework_uhal_interfaces
