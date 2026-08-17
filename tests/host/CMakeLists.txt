@@ -17,8 +17,18 @@ target_include_directories(smart_device_application_tests PRIVATE
     ../../external/agile-firmware-framework/components/platform/fake/include
 )
 
+add_executable(claim_protocol_tests
+    ClaimProtocolTests.cpp
+    ../../components/product_smart_device/src/matter/RhophiClaimProtocol.cpp
+)
+target_include_directories(claim_protocol_tests PRIVATE
+    ../../components/product_smart_device/src/matter
+    ../../external/agile-firmware-framework/components/uhal/core/include
+)
+
 enable_testing()
 add_test(NAME smart_device_application_tests COMMAND smart_device_application_tests)
+add_test(NAME claim_protocol_tests COMMAND claim_protocol_tests)
 foreach(CHECK_NAME boundaries dynamic catalog cmake)
     add_test(
         NAME layer_${CHECK_NAME}_check
@@ -31,4 +41,9 @@ add_test(
     NAME layer_checker_fixture_tests
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../architecture/test_layer_checker.py
             --checker ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
+)
+
+add_test(
+    NAME manufacturing_tool_tests
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/test_mfg_tool.py
 )

@@ -1,14 +1,10 @@
 # Local Gateway Before Cloud
 
-## Target topology
+## System topology
 
-```text
-ESP32-C6 node
-  -> transport adapter and protocol service
-  -> local MQTT broker on Linux Gateway
-  -> local rules, storage, alerts, and Web UI
-  -> optional cloud uplink to AWS, Azure, or another backend
-```
+Bản đồ runtime, process, protocol, port và data flow hiện tại nằm tại [kiến trúc toàn hệ thống](system-overview.md).
+
+Cloudflare Tunnel hiện cung cấp remote ingress tới local BBB Gateway. Đây không phải cloud telemetry backend; uplink bất đồng bộ tới AWS, Azure hoặc backend khác vẫn là planned capability.
 
 ## Required behavior
 

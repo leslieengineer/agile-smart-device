@@ -4,3 +4,9 @@
 [submodule "reference"]
 	path = reference
 	url = git@github.com:leslieengineer/RhoPhi_Smart_Home_ESP32_FW.git
+[submodule "dashboard-reference"]
+	path = dashboard-reference
+	url = git@github.com:leslieengineer/agile-dashboard.git
+[submodule "mobileapp-reference"]
+	path = mobileapp-reference
+	url = git@github.com:leslieengineer/agile-mobileapp.git

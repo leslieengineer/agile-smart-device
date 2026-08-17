@@ -1,6 +1,8 @@
 # agile-smart-device
 
-ESP-IDF firmware architecture for reusable smart-device products on ESP32-C6. The current product profile is a one-channel local switch. The framework also contains reusable Layer 4 policies for future Gateway-connected device profiles.
+ESP-IDF firmware architecture for reusable smart-device products on ESP32-C6. The repository provides a local-switch regression profile and a Matter-over-Thread On/Off Plug-in Unit profile. The framework also contains reusable Layer 4 policies that are not compiled into the Matter node image unless explicitly selected.
+
+New engineers should start with the [complete Vietnamese technical handbook](docs/README.md). See [Matter node architecture and verification gates](docs/architecture/matter-node.md) for the active Thread data model, pinned toolchain and BBB integration status. `dashboard-reference/` pins the Gateway/WebUI/Controller source for architecture and provisioning context only; it is excluded from firmware discovery.
 
 ## Current hardware profile
 
@@ -9,9 +11,10 @@ ESP-IDF firmware architecture for reusable smart-device products on ESP32-C6. Th
 | Button | GPIO9 | Active-low, internal pull-up, both-edge interrupt |
 | Relay | GPIO10 | Active-high, restored from NVS |
 | Relay state LED | GPIO2 | Active-high, mirrors relay state |
-| Future status LED | WS2812 GPIO8 | Reserved for connectivity/provisioning/fault indication |
-| Flash | 16 MB DIO | Single large application partition in the current profile |
-| SDK | ESP-IDF 6.0.2 | ESP32-C6 RISC-V target |
+| Matter status LED | WS2812 GPIO8 | Commissioning, Thread and fault indication in `matter_node` |
+| Flash | 16 MB DIO | Single-app local layout or dual 6 MiB OTA slots for Matter |
+| Local SDK | ESP-IDF 6.0.2 | `local_switch` and compile-only catalog profiles |
+| Matter SDK | ESP-IDF v5.5.5 + ESP-Matter release/v1.6 | Pinned ESP32-C6 Thread baseline |
 
 GPIO9 is a strapping pin. Holding it during reset enters download mode. The relay input on GPIO10 requires an external fail-safe bias so the relay remains off before firmware initializes the pin.
 
@@ -221,10 +224,10 @@ ESP-IDF discovers only the bridge groups selected by `PRODUCT_PROFILE`. Bridges 
 ```text
 imports/common/components/          UHAL core/interfaces and ESP32-C6 platform
 imports/local_switch/components/    ButtonInput and BinarySwitchService
-imports/gateway_node/components/    Optional network/messaging/operations services
+imports/gateway_node/components/    Optional compile-only policy catalog
 ```
 
-`local_switch` imports common + local-switch groups. `gateway_node` additionally imports the gateway group. Unselected bridges are not discovered or compiled. There is intentionally no `framework_ota_manager` bridge in the current single-application profiles.
+`local_switch` imports common + local-switch groups. `gateway_node` additionally imports the legacy compile-only Gateway policy group. `matter_node` keeps the local hardware/service bridges and adds pinned ESP-Matter/ConnectedHomeIP components directly; it does not import MQTT/Gateway bridges. Unselected bridges are not discovered or compiled.
 
 ## Layer 5 — Product/application/runtime
 
@@ -340,11 +343,10 @@ Not yet implemented/composed:
 - coreMQTT `IMessageTransport`
 - ESP-IDF SoftAP provisioning portal adapter
 - SNTP time-source adapter
-- WS2812 GPIO8 indication adapter
 - Connectivity coordinator and `net_svc` task
 - 4G link adapter because the modem BOM is not selected
 
-Matter is explicitly deferred. The MQTT Gateway protocol is proprietary and must not be described as Matter-compliant.
+Those Wi-Fi/MQTT items belong to the optional Gateway-connected catalog, not the production node path. The active node direction is Matter over Thread. The `matter_node` profile now creates an On/Off Plug-in Unit endpoint, routes OnOff writes through the product runtime, reports local state changes, supports commissioning/factory-reset button gestures, and drives the WS2812 status LED. BBB commissioning, subscription/event forwarding, production attestation and signed OTA remain open gates.
 
 ## Tasks and resource budgets
 
@@ -355,7 +357,8 @@ Current runtime:
 | `switch_ctrl` priority | 5 |
 | `switch_ctrl` stack | 3072 bytes configured in source |
 | Active button poll | 5 ms |
-| ISR queue depth | 1 |
+| Product event queue depth | 8 events |
+| Relay-state NVS coalescing delay | 500 ms |
 | Offline queue default | 32 records |
 | Gateway profile offline queue target | 16 records |
 | MQTT network-buffer target | 1024 bytes |
@@ -389,6 +392,8 @@ tools/check_layer_boundaries.py --check catalog
 The checks reject vendor dependencies in reusable/application code, dynamic/unbounded allocation patterns, concrete service coupling, incomplete catalog components, and `main` access to product internals.
 
 ## Repository map
+
+See [Repository structure and component responsibilities](docs/architecture/repository-structure.md) for the complete architecture-oriented directory tree, ownership, build role, lifecycle, and placement rules.
 
 ```text
 agile-smart-device/
@@ -427,6 +432,19 @@ idf.py build
 idf.py reconfigure -DPRODUCT_PROFILE=local_switch
 ```
 
+Matter builds use the official Linux host path. `tools/build_matter_reference.sh` validates the upstream ESP32-C6 Thread example. `tools/build_matter_node.sh` verifies the pinned SHAs before building the product profile:
+
+```text
+ESP-IDF:    b774170ff46c393eeb5e495ea37936038d3f4f4f (v5.5.5)
+ESP-Matter: c91ddfbb08ccc74bb73dd6eca7422178f48b75e1 (release/v1.6)
+```
+
+```cmd
+wsl -d Ubuntu-24.04 -u root -- bash /mnt/c/Users/lesli/WS/agile-smart-device/tools/build_matter_node.sh
+```
+
+Run local and Matter ESP-IDF builds sequentially, not concurrently. Both profiles share the generated `managed_components/` directory; the Matter script always reconfigures first to restore its resolved dependency set.
+
 Framework host tests:
 
 ```cmd
@@ -449,12 +467,13 @@ ctest --test-dir build --output-on-failure
 
 - Framework host tests/examples: 11/11 pass.
 - Parent host tests and architecture gates: 6/6 pass.
-- ESP-IDF 6.0.2 ESP32-C6 `local_switch` profile: pass.
-- ESP-IDF 6.0.2 ESP32-C6 `gateway_node` bridge profile: pass.
-- Local profile excludes gateway bridges from component discovery.
-- Firmware size: `0x2eae0` bytes.
-- Application partition free: 88%.
-- No hardware flash/acceptance test has been run in this implementation session.
+- ESP-IDF 6.0.2 ESP32-C6 `local_switch` profile: pass, `0x2edf0` bytes, 88% application partition free.
+- ESP-IDF 6.0.2 ESP32-C6 `gateway_node` bridge profile: previously passed as a compile-only catalog gate.
+- ESP-IDF v5.5.5 + ESP-Matter release/v1.6 upstream Thread reference: build, flash and boot pass on ESP32-C6 revision v0.2.
+- `matter_node`: build and hardware boot pass; endpoint 1 is created as On/Off Plug-in Unit and CHIPoBLE commissioning opens.
+- Matter image size before final production optimization: approximately `0x1a0080` bytes with 73% free in each 6 MiB OTA slot.
+- BBB OTBR is a Thread leader and the matter.js controller service runs, but its current RPC surface lacks commission/remove/read/subscription APIs. End-to-end BBB commissioning and attribute-report acceptance are not yet passed.
+- Local profile excludes Gateway/MQTT bridges from Matter component selection.
 
 ## Engineering rules
 

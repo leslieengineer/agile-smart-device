@@ -41,3 +41,38 @@ jobs:
           idf.py build
           test -f build/compile_commands.json
           idf.py size
+
+  matter-node-build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+      - name: Checkout pinned ESP-Matter
+        shell: bash
+        run: |
+          git clone --branch release/v1.6 --depth 1 https://github.com/espressif/esp-matter.git /opt/esp/esp-matter
+          test "$(git -C /opt/esp/esp-matter rev-parse HEAD)" = "c91ddfbb08ccc74bb73dd6eca7422178f48b75e1"
+          git -C /opt/esp/esp-matter submodule update --init --depth 1
+          python3 /opt/esp/esp-matter/connectedhomeip/connectedhomeip/scripts/checkout_submodules.py --platform esp32 --shallow
+          /opt/esp/esp-matter/install.sh --no-host-tool
+          python -m pip install -r /opt/esp/esp-matter/requirements.txt
+      - name: Build Matter-over-Thread node
+        shell: bash
+        env:
+          PROJECT_DIR: ${{ github.workspace }}
+          BUILD_DIR: ${{ github.workspace }}/build-matter-node
+          ESP_MATTER_PATH: /opt/esp/esp-matter
+        run: |
+          bash tools/build_matter_node.sh
+          test -f build-matter-node/compile_commands.json
+          if grep -a -q "home/control" build-matter-node/agile_smart_device.bin; then
+            echo "Matter node binary contains Gateway MQTT topics" >&2
+            exit 1
+          fi
+          if grep -a -q "request_id" build-matter-node/agile_smart_device.bin; then
+            echo "Matter node binary contains Gateway correlation fields" >&2
+            exit 1
+          fi
+          idf.py -B build-matter-node size
