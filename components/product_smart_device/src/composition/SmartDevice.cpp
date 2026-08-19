@@ -3,8 +3,8 @@
 #include <smart_device/SmartDevice.hpp>
 #include <smart_device/SmartDeviceApplication.hpp>
 
-#include "SwitchRuntime.hpp"
 #include "NvsBinaryStateStore.hpp"
+#include "SwitchRuntime.hpp"
 #if defined(SMART_DEVICE_MATTER_NODE)
 #include "MatterNode.hpp"
 #endif
@@ -24,9 +24,8 @@ uhal::Status initialize_nvs() {
 }
 
 uhal::Status initialize_factory_nvs() {
-    return nvs_flash_init_partition(kFactoryPartition) == ESP_OK
-               ? uhal::Status::ok
-               : uhal::Status::io_error;
+    return nvs_flash_init_partition(kFactoryPartition) == ESP_OK ? uhal::Status::ok
+                                                                 : uhal::Status::io_error;
 }
 
 }  // namespace
