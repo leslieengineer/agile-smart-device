@@ -9,3 +9,4 @@ dependencies.lock
 fctry*.bin
 *_partition.bin
 tools/mfg/out/
+.cache/build-matter/

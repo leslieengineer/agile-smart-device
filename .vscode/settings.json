@@ -3,5 +3,9 @@
     "idf.portWin": "COM9",
     "idf.cmakeCompilerArgs": [
         "-DPRODUCT_PROFILE=matter_node"
-    ]
+    ],
+    "idf.espIdfPath": "/home/leslie/esp/v6.1-rc1/esp-idf",
+    "idf.toolsPath": "/home/leslie/.espressif",
+    "idf.pythonInstallPath": "/usr/bin/python3",
+    "idf.port": "/dev/ttyACM2"
 }
