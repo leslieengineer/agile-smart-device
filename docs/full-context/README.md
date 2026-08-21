@@ -1,5 +1,7 @@
 # Full Context — Smart Home Gateway và ESP32-C6 Nodes
 
+> **LEGACY / NON-AUTHORITATIVE.** Snapshot này được giữ để tra cứu. Dùng [docs authoritative](../README.md).
+
 Tài liệu này là gói bàn giao kỹ thuật giữa nhóm Gateway/Web và nhóm firmware ESP32-C6 application node. Nó tóm lược những gì đã làm, đang làm, sẽ làm, cùng các contract cần thống nhất trước khi tích hợp phần cứng thật.
 
 Đây là shared snapshot trong firmware repository. Source/as-built canonical của WebUI/BBB nằm tại `C:\Users\lesli\WS\agile-dashboard`; các path `packages/`, `apps/` và `deploy/` phía dưới được hiểu là relative tới sibling repository đó. Người mới nên bắt đầu tại [`docs/README.md`](../README.md).

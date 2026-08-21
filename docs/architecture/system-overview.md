@@ -1,5 +1,7 @@
 # Kiến trúc toàn hệ thống Agile Smart Home
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [kiến trúc end-to-end](../01-kien-truc-end-to-end.md).
+
 ## 1. Mục đích và phạm vi
 
 Tài liệu này là bản đồ canonical ở cấp toàn hệ thống. Nó trả lời các câu hỏi sau.

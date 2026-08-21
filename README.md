@@ -1,488 +1,54 @@
-# agile-smart-device
+# Agile Smart Device
 
-ESP-IDF firmware architecture for reusable smart-device products on ESP32-C6. The repository provides a local-switch regression profile and a Matter-over-Thread On/Off Plug-in Unit profile. The framework also contains reusable Layer 4 policies that are not compiled into the Matter node image unless explicitly selected.
+Hệ thống Matter-over-Thread gồm firmware ESP32-C6 application node, Android commissioning app, BeagleBone Black OTBR/Matter Controller/Gateway/BFF và WebUI.
 
-New engineers should start with the [complete Vietnamese technical handbook](docs/README.md). See [Matter node architecture and verification gates](docs/architecture/matter-node.md) for the active Thread data model, pinned toolchain and BBB integration status. `dashboard-reference/` pins the Gateway/WebUI/Controller source for architecture and provisioning context only; it is excluded from firmware discovery.
+Bắt đầu tại [Tài liệu hệ thống authoritative](docs/README.md).
 
-## Current hardware profile
+## Trạng thái
 
-| Function | Resource | Behavior |
-|---|---:|---|
-| Button | GPIO9 | Active-low, internal pull-up, both-edge interrupt |
-| Relay | GPIO10 | Active-high, restored from NVS |
-| Relay state LED | GPIO2 | Active-high, mirrors relay state |
-| Matter status LED | WS2812 GPIO8 | Commissioning, Thread and fault indication in `matter_node` |
-| Flash | 16 MB DIO | Single-app local layout or dual 6 MiB OTA slots for Matter |
-| Local SDK | ESP-IDF 6.0.2 | `local_switch` and compile-only catalog profiles |
-| Matter SDK | ESP-IDF v5.5.5 + ESP-Matter release/v1.6 | Pinned ESP32-C6 Thread baseline |
+| Hạng mục | Source | Deployed | HIL |
+|---|---|---|---|
+| ESP32-C6 On/Off node | Có | Có | Từng phần |
+| Rhophi BLE claim | Có | Có | Từng bước |
+| Android Matter commissioning | Có | Có | Đang debug final flow |
+| BBB OTBR/Matter Controller | Có | Có | RPC/Thread từng phần |
+| WebUI dynamic inventory | Có | Có | Chưa với permanent node cuối |
+| Production security/release | Một phần | Không | Không |
 
-GPIO9 is a strapping pin. Holding it during reset enters download mode. The relay input on GPIO10 requires an external fail-safe bias so the relay remains off before firmware initializes the pin.
+Xem [status và open issues](docs/12-status-open-issues.md) để biết trạng thái chi tiết. Build pass không đồng nghĩa HIL pass.
 
-## Dependency direction
+## Hardware node
 
-```mermaid
-flowchart TD
-    Main[main app_main]
-    Product[Layer 5 product]
-    Logic[Layer 4 reusable logic]
-    Contract[Layer 2 UHAL contracts]
-    Adapter[Layer 3 platform adapters]
-    LowLevel[Layer 1 low-level]
-    Vendor[ESP-IDF and hardware]
-
-    Main --> Product
-    Product --> Logic
-    Product --> Adapter
-    Logic --> Contract
-    Adapter --> Contract
-    Adapter --> LowLevel
-    LowLevel --> Vendor
-```
-
-```text
-main
-  -> Layer 5 composition/application/runtime
-      -> Layer 4 services/libraries/protocols
-          -> Layer 2 UHAL contracts
-      -> Layer 3 concrete adapters
-          -> Layer 1 vendor access
-              -> ESP-IDF / hardware
-```
-
-Rules are enforced by `tools/check_layer_boundaries.py` and documented in `AGENTS.md` plus `docs/rules/`.
-
-## Layer 1 — ESP32-C6 low-level
-
-Layer 1 is the only reusable platform layer that directly calls ESP-IDF peripheral APIs. It does not contain product behavior.
-
-Location:
-
-```text
-external/agile-firmware-framework/components/platform/esp32c6/esp_idf/low_level/
-```
-
-Implemented files used by the current product:
-
-```text
-low_level/system/Gpio.hpp
-low_level/system/Gpio.cpp
-low_level/system/SysTimer.hpp
-low_level/system/SysTimer.cpp
-low_level/system/Watchdog.hpp
-low_level/system/Watchdog.cpp
-```
-
-Responsibilities:
-
-- Configure/read/write GPIO.
-- Install per-pin GPIO interrupt handlers.
-- Enable/disable GPIO interrupts.
-- Read monotonic milliseconds and delay a task.
-- Subscribe, feed, and unsubscribe the current task from the ESP task watchdog.
-
-Other peripheral files in the ESP32-C6 platform catalog remain placeholders until a real vertical slice requires them.
-
-## Layer 2 — UHAL contracts
-
-Layer 2 defines platform-neutral capabilities. Contracts never receive board pin numbers or vendor handles on every operation; each object represents an already configured resource.
-
-Locations:
-
-```text
-external/agile-firmware-framework/components/uhal/core/include/uhal/
-external/agile-firmware-framework/components/uhal/interfaces/include/uhal/
-```
-
-Important files:
-
-```text
-core/include/uhal/Status.hpp
-interfaces/include/uhal/IGpio.hpp
-interfaces/include/uhal/IGpioInterrupt.hpp
-interfaces/include/uhal/IClock.hpp
-interfaces/include/uhal/IStorage.hpp
-interfaces/include/uhal/IWatchdog.hpp
-interfaces/include/uhal/IUart.hpp
-```
-
-`Status.hpp` contains common error values including `not_found`, `no_resources`, `corrupt`, `not_ready`, `denied`, and `aborted`.
-
-## Layer 3 — Platform adapters
-
-Layer 3 implements UHAL contracts by translating them to Layer 1/ESP-IDF operations. It may know configured hardware resources, but it must not contain product policy, MQTT topics, persistence schema, button actions, or relay behavior.
-
-Location:
-
-```text
-external/agile-firmware-framework/components/platform/esp32c6/esp_idf/adapters/
-```
-
-Implemented adapters:
-
-```text
-adapters/gpio/Esp32C6Gpio.hpp
-adapters/gpio/Esp32C6Gpio.cpp
-adapters/clock/Esp32C6Clock.hpp
-adapters/clock/Esp32C6Clock.cpp
-adapters/watchdog/Esp32C6Watchdog.hpp
-adapters/watchdog/Esp32C6Watchdog.cpp
-```
-
-Classes:
-
-- `esp32c6::adapters::OutputPin`
-- `esp32c6::adapters::InputPin`
-- `esp32c6::adapters::PinInterrupt`
-- `esp32c6::adapters::Clock`
-- `esp32c6::adapters::Watchdog`
-
-The parent project imports these files through:
-
-```text
-imports/common/components/framework_platform_esp32c6/CMakeLists.txt
-```
-
-## Board configuration
-
-Board facts are not reusable platform drivers. They belong to the product repository.
-
-Location:
-
-```text
-components/board_esp32c6/
-├─ CMakeLists.txt
-├─ include/board/Board.hpp
-├─ include/board/BoardPins.hpp
-└─ src/Board.cpp
-```
-
-`BoardPins.hpp` owns GPIO numbers and polarity. `Board` owns concrete GPIO, interrupt, and clock adapter instances and exposes them through UHAL references.
-
-## Layer 4 — Reusable logic
-
-Layer 4 contains device-independent policies, protocols, and pure algorithms. It must not include ESP-IDF, FreeRTOS, board, NVS, socket, Wi-Fi, TLS, or MQTT-client headers.
-
-Framework location:
-
-```text
-external/agile-firmware-framework/components/
-├─ libraries/
-├─ protocols/
-└─ services/
-```
-
-### Pure libraries
-
-Implemented components include:
-
-```text
-libraries/button/                 ButtonInput debounce and press classification
-libraries/ring_buffer/            FixedRingBuffer
-libraries/retry/                  BackoffPolicy and wrap-safe Deadline
-libraries/serialization/          ByteReader/Writer and bounded flat JSON
-libraries/include/libraries/      CRC16, CRC32, EventBus, StateMachine
-```
-
-### Protocol policy
-
-```text
-protocols/frame/                   Bounded frame codec and CRC validation
-protocols/modbus-rtu/              Existing Modbus transport sample
-protocols/mqtt/                    MQTT topics and session policy only
-```
-
-`protocols/mqtt` does not implement MQTT wire packets. A product transport adapter must use a proven MQTT implementation such as coreMQTT.
-
-### Reusable services
-
-Implemented and host-tested:
-
-```text
-services/binary_switch/            Persisted on/off load policy
-services/configuration/            Fixed A/B configuration snapshots and CRC recovery
-services/security_policy/          Roles, credential lifecycle, signature-verifier port
-services/network_manager/          Link priority, retry/backoff, failover seam
-services/provisioning/              Transport-neutral credential lifecycle
-services/indication/                Priority indication arbitration
-services/messaging/                 Bounded message/transport contracts
-services/offline_queue/             Fixed store-and-forward queue
-services/telemetry/                 Bounded telemetry JSON and offline replay
-services/command_dispatcher/        Authorization, routing, idempotency, responses
-services/time_sync/                 Non-blocking time-quality/sync policy
-services/diagnostics/               Counters, gauges, bounded fault history
-services/health_monitor/            Liveness/watchdog/recovery policy
-services/ota_manager/               Signed OTA policy and abstract ports
-services/environment_monitor/       Framework sample, not composed by this product
-```
-
-The current firmware does **not** instantiate every service. Product composition is selective so unused network/OTA policies add no runtime tasks or state.
-
-## Framework bridges
-
-ESP-IDF discovers only the bridge groups selected by `PRODUCT_PROFILE`. Bridges compile framework sources from the submodule without copying them.
-
-```text
-imports/common/components/          UHAL core/interfaces and ESP32-C6 platform
-imports/local_switch/components/    ButtonInput and BinarySwitchService
-imports/gateway_node/components/    Optional compile-only policy catalog
-```
-
-`local_switch` imports common + local-switch groups. `gateway_node` additionally imports the legacy compile-only Gateway policy group. `matter_node` keeps the local hardware/service bridges and adds pinned ESP-Matter/ConnectedHomeIP components directly; it does not import MQTT/Gateway bridges. Unselected bridges are not discovered or compiled.
-
-## Layer 5 — Product/application/runtime
-
-Layer 5 selects concrete adapters, creates the object graph, maps semantic product events, and owns product-specific persistence schemas and task scheduling.
-
-Location:
-
-```text
-components/product_smart_device/
-├─ CMakeLists.txt
-├─ include/smart_device/
-│  ├─ SmartDevice.hpp
-│  └─ SmartDeviceApplication.hpp
-└─ src/
-   ├─ application/
-   │  └─ SmartDeviceApplication.cpp
-   ├─ composition/
-   │  └─ SmartDevice.cpp
-   ├─ runtime/
-   │  ├─ SwitchRuntime.hpp
-   │  └─ SwitchRuntime.cpp
-   └─ adapters/
-      ├─ NvsBinaryStateStore.hpp
-      └─ NvsBinaryStateStore.cpp
-```
-
-Responsibilities:
-
-- `SmartDevice.cpp` is the composition root. It initializes NVS and board hardware, creates concrete adapters and services, then starts runtime tasks.
-- `SmartDeviceApplication` is vendor-neutral product behavior. It exposes initialize, short-press, explicit set, and state query use cases.
-- `SwitchRuntime` owns FreeRTOS queue/task and converts GPIO/button activity into semantic application calls.
-- `NvsBinaryStateStore` implements the Layer 4 `IBinaryStateStore` port using product-owned namespace/schema/key choices.
-
-`SmartDeviceApplication.hpp/.cpp` is forbidden from including ESP-IDF, FreeRTOS, board, NVS, Wi-Fi, MQTT, sockets, or concrete adapters.
-
-## Boot flow
-
-```mermaid
-sequenceDiagram
-    participant IDF as ESP-IDF
-    participant Main as app_main
-    participant Root as SmartDevice composition
-    participant NVS as NVS store
-    participant Board as Board
-    participant App as SmartDeviceApplication
-    participant Runtime as SwitchRuntime
-
-    IDF->>Main: start
-    Main->>Root: smart_device::start()
-    Root->>NVS: nvs_flash_init()
-    Root->>Board: construct and initialize safe OFF outputs
-    Root->>NVS: construct binary state store
-    Root->>App: initialize and restore state
-    Root->>Runtime: create queue/task
-    Runtime->>Board: attach and enable button interrupt
-    Root-->>Main: Status
-```
-
-Current hard-fail points are NVS initialization, board safe-state initialization, application restore/apply, and runtime creation. Gateway-connected degraded startup is documented but concrete Wi-Fi/TLS/MQTT adapters are not yet composed.
-
-## Local button and relay flow
-
-```text
-GPIO9 edge ISR
-  -> overwrite one-element ISR queue
-  -> switch_ctrl FreeRTOS task
-  -> sample logical button state
-  -> ButtonInput debounce
-  -> short_press semantic event
-  -> SmartDeviceApplication::on_short_press()
-  -> BinarySwitchService::toggle()
-  -> GPIO10 relay + GPIO2 state LED
-  -> NvsBinaryStateStore::save()
-```
-
-The ISR does not debounce, persist, log, or execute Layer 4 policy.
-
-## Persistence flow
-
-Current switch-state schema:
-
-```text
-NVS namespace: smartdev
-schema key:    schema
-schema value:  1
-state key:     relay_on
-```
-
-Missing/corrupt state defaults to OFF. A save failure does not roll back an already applied relay state; it returns an error to runtime for logging/diagnostics.
-
-`ConfigurationService` is a separate generic Layer 4 component over `IStorage`; it is not used for this small NVS relay-state schema.
-
-## Gateway-connected roadmap status
-
-Architecture documents:
-
-```text
-docs/architecture/local-gateway-cloud.md
-docs/architecture/mqtt-contract.md
-docs/architecture/node-service-catalog.md
-```
-
-Completed:
-
-- Layer 4 network/provisioning/messaging/MQTT/offline/telemetry/command/time/diagnostic/health policies.
-- ESP-IDF bridge components compile successfully after `idf.py reconfigure`.
-- ESP32-C6 watchdog Layer 1/3 adapter.
-
-Not yet implemented/composed:
-
-- `WifiStationLink`
-- TLS socket with custom CA validation
-- coreMQTT `IMessageTransport`
-- ESP-IDF SoftAP provisioning portal adapter
-- SNTP time-source adapter
-- Connectivity coordinator and `net_svc` task
-- 4G link adapter because the modem BOM is not selected
-
-Those Wi-Fi/MQTT items belong to the optional Gateway-connected catalog, not the production node path. The active node direction is Matter over Thread. The `matter_node` profile now creates an On/Off Plug-in Unit endpoint, routes OnOff writes through the product runtime, reports local state changes, supports commissioning/factory-reset button gestures, and drives the WS2812 status LED. BBB commissioning, subscription/event forwarding, production attestation and signed OTA remain open gates.
-
-## Tasks and resource budgets
-
-Current runtime:
-
-| Task/resource | Value |
+| Chức năng | Resource |
 |---|---:|
-| `switch_ctrl` priority | 5 |
-| `switch_ctrl` stack | 3072 bytes configured in source |
-| Active button poll | 5 ms |
-| Product event queue depth | 8 events |
-| Relay-state NVS coalescing delay | 500 ms |
-| Offline queue default | 32 records |
-| Gateway profile offline queue target | 16 records |
-| MQTT network-buffer target | 1024 bytes |
+| Button active-low | GPIO9 |
+| Relay active-high | GPIO10 |
+| Relay LED | GPIO2 |
+| WS2812 status | GPIO8 |
+| Flash | 16 MiB, dual OTA layout cho Matter |
 
-The future Gateway profile reserves a separate lower-priority `net_svc` task so TLS/MQTT work cannot delay local relay control.
+## Quick start
 
-## Tests and architecture enforcement
-
-Framework tests are under:
-
-```text
-external/agile-firmware-framework/tests/unit/
+```bash
+python3 tools/check_layer_boundaries.py
+cmake -S tests/host -B build/host-tests -G Ninja
+cmake --build build/host-tests
+ctest --test-dir build/host-tests --output-on-failure
+bash tools/build_matter_node.sh
 ```
 
-They cover UHAL samples, button, binary switch, bounded foundation, configuration/security, network/provisioning/indication, messaging/telemetry, command dispatch, diagnostics/time/health, and OTA policy.
+Flash/deploy/erase là thao tác thay đổi trạng thái; dùng [runbook](docs/runbooks/README.md) thay vì copy lệnh từ tài liệu legacy.
 
-Parent tests are under:
+## Repository
 
-```text
-tests/host/
-```
+- `components/` — board và product firmware.
+- `external/agile-firmware-framework/` — reusable framework submodule.
+- `dashboard-reference/` — BBB/WebUI/controller source.
+- `mobileapp-reference/` — mobile app, SDK và native plugin.
+- `tests/` — host, architecture và HIL contract.
+- `tools/` — build, flash, manufacturing và validation.
+- `docs/` — tài liệu authoritative.
 
-Automated rules:
+## Quy tắc
 
-```text
-tools/check_layer_boundaries.py --check boundaries
-tools/check_layer_boundaries.py --check dynamic
-tools/check_layer_boundaries.py --check catalog
-```
-
-The checks reject vendor dependencies in reusable/application code, dynamic/unbounded allocation patterns, concrete service coupling, incomplete catalog components, and `main` access to product internals.
-
-## Repository map
-
-See [Repository structure and component responsibilities](docs/architecture/repository-structure.md) for the complete architecture-oriented directory tree, ownership, build role, lifecycle, and placement rules.
-
-```text
-agile-smart-device/
-├─ main/                              ESP-IDF entry only
-├─ components/
-│  ├─ board_esp32c6/                 Board facts and concrete board object
-│  └─ product_smart_device/          Layer 5 product
-├─ imports/
-│  ├─ common/components/             Always-selected framework bridges
-│  ├─ local_switch/components/       Local-switch capability bridges
-│  └─ gateway_node/components/       Optional Gateway capability bridges
-├─ external/
-│  └─ agile-firmware-framework/      Layers 1–4 reusable catalog
-├─ reference/                        Legacy behavior reference, not active architecture
-├─ tests/host/                       Parent/application tests and architecture gates
-├─ tools/                             Automated boundary checker
-├─ docs/rules/                        Architecture, coding, dependency rules
-├─ docs/checklists/                   Review checklists
-└─ docs/architecture/                 Gateway/MQTT/service blueprints
-```
-
-## Build and test
-
-```cmd
-call C:\Users\lesli\espv6\v6.0.2\esp-idf\export.bat
-git submodule update --init --recursive
-idf.py set-target esp32c6
-idf.py reconfigure -DPRODUCT_PROFILE=local_switch
-idf.py build
-
-:: Optional compile-only gateway catalog profile
-idf.py reconfigure -DPRODUCT_PROFILE=gateway_node
-idf.py build
-
-:: Restore default local profile
-idf.py reconfigure -DPRODUCT_PROFILE=local_switch
-```
-
-Matter builds use the official Linux host path. `tools/build_matter_reference.sh` validates the upstream ESP32-C6 Thread example. `tools/build_matter_node.sh` verifies the pinned SHAs before building the product profile:
-
-```text
-ESP-IDF:    b774170ff46c393eeb5e495ea37936038d3f4f4f (v5.5.5)
-ESP-Matter: c91ddfbb08ccc74bb73dd6eca7422178f48b75e1 (release/v1.6)
-```
-
-```cmd
-wsl -d Ubuntu-24.04 -u root -- bash /mnt/c/Users/lesli/WS/agile-smart-device/tools/build_matter_node.sh
-```
-
-Run local and Matter ESP-IDF builds sequentially, not concurrently. Both profiles share the generated `managed_components/` directory; the Matter script always reconfigures first to restore its resolved dependency set.
-
-Framework host tests:
-
-```cmd
-cd external\agile-firmware-framework
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
-
-Parent host tests and architecture gates:
-
-```cmd
-cd tests\host
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
-
-## Current verification status
-
-- Framework host tests/examples: 11/11 pass.
-- Parent host tests and architecture gates: 6/6 pass.
-- ESP-IDF 6.0.2 ESP32-C6 `local_switch` profile: pass, `0x2edf0` bytes, 88% application partition free.
-- ESP-IDF 6.0.2 ESP32-C6 `gateway_node` bridge profile: previously passed as a compile-only catalog gate.
-- ESP-IDF v5.5.5 + ESP-Matter release/v1.6 upstream Thread reference: build, flash and boot pass on ESP32-C6 revision v0.2.
-- `matter_node`: build and hardware boot pass; endpoint 1 is created as On/Off Plug-in Unit and CHIPoBLE commissioning opens.
-- Matter image size before final production optimization: approximately `0x1a0080` bytes with 73% free in each 6 MiB OTA slot.
-- BBB OTBR is a Thread leader and the matter.js controller service runs, but its current RPC surface lacks commission/remove/read/subscription APIs. End-to-end BBB commissioning and attribute-report acceptance are not yet passed.
-- Local profile excludes Gateway/MQTT bridges from Matter component selection.
-
-## Engineering rules
-
-Start with:
-
-- `AGENTS.md`
-- `docs/rules/architecture.md`
-- `docs/rules/coding-standards.md`
-- `docs/rules/dependencies.md`
-- `docs/checklists/level5-change.md`
-
-Do not claim MISRA, CERT, Matter, OTA readiness, TLS readiness, or production security without matching analyzer, adapter, key-material, partition, and hardware evidence.
+Đọc `AGENTS.md`, `docs/rules/` và checklist trước khi sửa firmware. Không đưa Thread dataset, claim secret, registry key, passcode, DAC private key, bearer token hoặc password vào Git/log/tài liệu.

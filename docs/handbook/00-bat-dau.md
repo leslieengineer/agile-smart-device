@@ -1,5 +1,7 @@
 # 00 — Bắt đầu với Agile Smart Device
 
+> **LEGACY / NON-AUTHORITATIVE.** Handbook cũ được giữ để tra cứu. Bắt đầu tại [docs authoritative](../README.md).
+
 ## Mục tiêu
 
 Sau chương này, kỹ sư mới biết repository nào cần mở, trạng thái thật của sản phẩm, cách chạy gate cơ bản và tài liệu nào cần đọc tiếp.

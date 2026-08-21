@@ -1,5 +1,7 @@
 # MQTT contract catalog note
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [contract authoritative](../07-contract-api-mqtt-sse.md).
+
 ## Trạng thái
 
 Namespace `asd/v1/<site>/<device>` dưới đây là **framework/alternative Gateway-connected profile contract**. Nó không phải contract đang deploy của sản phẩm Matter-over-Thread hiện tại và không được compile vào `matter_node`.

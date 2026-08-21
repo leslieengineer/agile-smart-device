@@ -1,111 +1,72 @@
-# Trung tâm tài liệu kỹ thuật Agile Smart Device
+# Tài liệu hệ thống Agile Smart Device
 
-Đây là điểm bắt đầu dành cho thành viên mới tham gia dự án. Bộ tài liệu mô tả toàn bộ sản phẩm từ WebUI, BBB Gateway, Matter Controller, OTBR đến ESP32-C6 application node.
+Cập nhật: 2026-08-19. Đây là bộ tài liệu **authoritative** của hệ thống. Source, config, schema và test có quyền ưu tiên cao hơn tài liệu khi có mâu thuẫn.
 
-## Trạng thái tài liệu
-
-Cập nhật theo source và kết quả kiểm chứng ngày 2026-08-16.
+## Nhãn trạng thái
 
 | Nhãn | Ý nghĩa |
 |---|---|
-| **Verified** | Đã có command output, test, build hoặc hardware log. |
-| **Implemented, chưa HIL** | Code đã tồn tại và compile nhưng chưa qua acceptance trên toàn hệ thống. |
-| **Planned** | Có thiết kế/roadmap nhưng chưa có implementation hoàn chỉnh. |
-| **Production blocker** | Bắt buộc hoàn thành trước khi phát hành sản phẩm. |
-| **Legacy/reference-only** | Chỉ dùng đối chiếu, không thuộc kiến trúc active. |
+| Source | Hành vi có trong working tree và có gate phù hợp. |
+| Deployed | Artifact đã được build/cài/flash và health check trên target thật. |
+| HIL | Luồng đã pass end-to-end với evidence đã redact. |
+| Đang debug | Đã triển khai một phần nhưng acceptance cuối chưa đạt. |
 
-## Lộ trình đọc
+Không suy diễn `HIL` từ việc code compile hoặc service đang active. Không tuyên bố production-ready hay compliance nếu thiếu bằng chứng.
 
-### Đọc nhanh trong 30 phút
+## Chương authoritative
 
-1. [Bắt đầu](handbook/00-bat-dau.md)
-2. [Sản phẩm và use case](handbook/01-san-pham-va-use-case.md)
-3. [Kiến trúc toàn hệ thống](handbook/02-kien-truc-toan-he-thong.md)
-4. [Bản đồ kiến trúc end-to-end chi tiết](architecture/system-overview.md)
-5. [Trạng thái Matter node](architecture/matter-node.md)
+1. [Tổng quan sản phẩm](00-tong-quan-san-pham.md)
+2. [Kiến trúc end-to-end](01-kien-truc-end-to-end.md)
+3. [Firmware ESP32-C6](02-firmware-esp32c6.md)
+4. [Rhophi claim GATT](03-rhophi-claim-gatt.md)
+5. [Mobile commissioning](04-mobile-commissioning.md)
+6. [BBB Gateway, Controller và WebUI](05-bbb-gateway-controller-webui.md)
+7. [Thread và IPv6 routing](06-thread-ipv6-routing.md)
+8. [REST, MQTT và SSE contracts](07-contract-api-mqtt-sse.md)
+9. [Build, flash và deploy](08-build-flash-deploy.md)
+10. [Security, manufacturing và secrets](09-security-manufacturing-secrets.md)
+11. [Testing, HIL và evidence](10-testing-hil-evidence.md)
+12. [Vận hành và troubleshooting](11-operations-troubleshooting.md)
+13. [Trạng thái và open issues](12-status-open-issues.md)
+14. [Thuật ngữ, ownership và repository](13-thuat-ngu-ownership-repository.md)
 
-### Onboarding kỹ thuật đầy đủ
+## Lộ trình theo vai trò
 
-1. [Bắt đầu](handbook/00-bat-dau.md)
-2. [Sản phẩm và use case](handbook/01-san-pham-va-use-case.md)
-3. [Kiến trúc toàn hệ thống](handbook/02-kien-truc-toan-he-thong.md)
-4. [Phần cứng node](handbook/03-phan-cung-node.md)
-5. [Firmware node](handbook/04-firmware-node.md)
-6. [Matter và Thread](handbook/05-matter-thread.md)
-7. [BBB Gateway và WebUI](handbook/06-bbb-gateway-webui.md)
-8. [Build và phát triển](handbook/07-build-va-phat-trien.md)
-9. [Flash, commissioning và deploy](handbook/08-flash-commission-deploy.md)
-10. [Kiểm thử và bằng chứng](handbook/09-kiem-thu-va-bang-chung.md)
-11. [Security, OTA và sản xuất](handbook/10-security-ota-san-xuat.md)
-12. [Vận hành và xử lý sự cố](handbook/11-van-hanh-va-xu-ly-su-co.md)
-13. [Glossary và ownership](handbook/12-glossary-va-ownership.md)
-
-### Theo vai trò
-
-| Vai trò | Nên đọc trước |
+| Vai trò | Thứ tự đọc |
 |---|---|
-| Firmware | 03 → 04 → 05 → 07 → 09 |
-| Gateway/backend | 02 → 05 → 06 → 08 → 11 |
-| WebUI | 01 → 02 → 06 → 09 |
-| QA/HIL | 01 → 03 → 05 → 08 → 09 → 11 |
-| Operations | 02 → 06 → 08 → 10 → 11 |
-| Hardware/security | 03 → 05 → 10 → 09 |
+| Firmware | 02 → 03 → 08 → 10 → 11 |
+| Mobile | 04 → 03 → 06 → 07 → 11 |
+| BBB/backend | 05 → 06 → 07 → 08 → 11 |
+| WebUI | 01 → 05 → 07 → 10 |
+| QA/HIL | 00 → 04 → 05 → 10 → 12 |
+| Operations | 01 → 05 → 06 → 08 → 11 |
 
-## Source of truth
+## Bốn tài liệu tiêu chuẩn
 
-Ưu tiên khi hai tài liệu mâu thuẫn:
+- [Danh mục bốn tài liệu](guides/README.md)
+- [ESP32-C6 trên Ubuntu 24.04](guides/01-esp32c6-ubuntu-24.04.md)
+- [Mobile App trên Ubuntu 24.04](guides/02-mobile-app-ubuntu-24.04.md)
+- [WebUI trên Ubuntu 24.04](guides/03-webui-ubuntu-24.04.md)
+- [BeagleBone Black Debian 11 production](guides/05-bbb-debian11-production-dashboard.md)
+- [Phụ lục lệnh BeagleBone Black](guides/04-beaglebone-black-operations.md)
 
-1. Source, CMake, config, tests và hardware evidence hiện tại.
-2. Handbook này và [architecture documents](architecture/).
-3. [Architecture/coding/dependency rules](rules/).
-4. Component README và [framework catalog](../external/agile-firmware-framework/docs/catalog.md).
-5. Sibling repository `C:\Users\lesli\WS\agile-dashboard` cho WebUI/BBB as-built.
-6. `docs/full-context/` là shared snapshot, không thay thế sibling source.
-7. `reference/`, `Refactor_plan.md`, `.embedder/plans/` và build artifacts không phải source of truth.
+## Runbook
 
-## Tài liệu chi tiết hiện có
+- [Danh mục runbook](runbooks/README.md)
+- [Bench lab](runbooks/lab-hardware.md)
+- [Firmware build/flash](runbooks/firmware-build-flash.md)
+- [Android build/install](runbooks/android-build-install.md)
+- [BBB deploy/rollback](runbooks/bbb-deploy-rollback.md)
+- [Commissioning end-to-end](runbooks/commissioning-e2e.md)
+- [Recovery/reset](runbooks/recovery-reset.md)
 
-- [Kiến trúc toàn hệ thống end-to-end](architecture/system-overview.md)
-- [Cấu trúc repository](architecture/repository-structure.md)
-- [Matter node architecture](architecture/matter-node.md)
-- [Local/Gateway/Cloud topology](architecture/local-gateway-cloud.md)
-- [Active MQTT Gateway contract](full-context/03-contract-mqtt-gateway.md)
-- [Node service catalog](architecture/node-service-catalog.md)
-- [Architecture rules](rules/architecture.md)
-- [Coding standards](rules/coding-standards.md)
-- [Dependency rules](rules/dependencies.md)
-- [Layer 5 review checklist](checklists/level5-change.md)
-- [Hardware acceptance matrix](../tests/hil/README.md)
-- [Board definition](../components/board_esp32c6/README.md)
-- [Product component](../components/product_smart_device/README.md)
+## Tài liệu khác
 
-## Các codebase active và reference
+- [Quy tắc kiến trúc](rules/architecture.md)
+- [Coding standard](rules/coding-standards.md)
+- [Dependency policy](rules/dependencies.md)
+- [Checklist Layer 5](checklists/level5-change.md)
+- [Checklist tài liệu](checklists/doc-change.md)
+- [Legacy index](legacy/README.md)
 
-| Repository/thư mục | Ownership |
-|---|---|
-| `agile-smart-device` | ESP32-C6 application node, reusable framework submodule, firmware tests và HIL contract. |
-| `agile-dashboard` | WebUI, MQTT contracts, Gateway, matter.js Controller source, BBB deployment và as-built operations docs. |
-| `mobileapp-reference/` | Ionic/Capacitor Mobile, typed client SDK, Android Keystore plugin và Mobile as-built context. |
-| `dashboard-reference/` | Pinned snapshot của `agile-dashboard` để cross-reference architecture/provisioning; không tham gia firmware build. |
-
-Các đường dẫn canonical của sibling repository:
-
-```text
-C:\Users\lesli\WS\agile-dashboard\docs\full-context\
-C:\Users\lesli\WS\agile-dashboard\packages\contracts\src\
-C:\Users\lesli\WS\agile-dashboard\packages\gateway\src\
-C:\Users\lesli\WS\agile-dashboard\packages\matter-controller\src\
-C:\Users\lesli\WS\agile-dashboard\apps\webui\src\
-C:\Users\lesli\WS\agile-dashboard\deploy\
-```
-
-## Quy tắc cập nhật tài liệu
-
-Khi thay đổi pin, profile, endpoint, cluster, MQTT contract, NVS schema, partition, toolchain hoặc deployment:
-
-1. sửa source/config và test;
-2. chạy gate phù hợp;
-3. cập nhật chương handbook liên quan;
-4. cập nhật tài liệu architecture/component authoritative;
-5. ghi rõ phần nào Verified và phần nào chưa HIL;
-6. không ghi credential, Thread dataset, passcode, DAC private key hoặc fabric secret vào Git.
+`docs/handbook`, `docs/full-context`, `docs/architecture`, course trong các reference repository và các kế hoạch cũ chỉ dùng tra cứu lịch sử.

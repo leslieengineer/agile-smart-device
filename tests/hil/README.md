@@ -1,38 +1,51 @@
 # Hardware-in-the-Loop Acceptance
 
-Execution/evidence guidance is documented in the [testing handbook](../../docs/handbook/09-kiem-thu-va-bang-chung.md).
+Hướng dẫn evidence nằm tại [Testing/HIL authoritative](../../docs/10-testing-hil-evidence.md) và [commissioning runbook](../../docs/runbooks/commissioning-e2e.md).
 
-HIL automation is added only with connected hardware and an explicit flash request. The current board acceptance matrix is:
+Không test nào được flash, erase hoặc reset hardware nếu caller chưa chọn đúng target và cho phép thao tác.
 
-1. Erased NVS boots with relay GPIO10 and LED GPIO2 OFF.
-2. A short GPIO9 press toggles exactly once.
-3. Twenty short presses produce twenty state changes without misses or duplicates.
-4. Holding GPIO9 for three seconds produces no short-press toggle.
-5. Relay ON and OFF states both survive a power cycle.
-6. GPIO10 does not chatter during reset; hardware fail-safe bias is verified with a probe.
-7. Holding GPIO9 during reset enters download mode as expected for the strapping pin.
-8. Host logs contain no task-stack overflow, watchdog, NVS, or GPIO errors.
-9. A released hold of at least five seconds opens/reopens the Matter commissioning window without toggling the relay.
-10. A released hold of at least ten seconds performs Matter factory reset only after visual confirmation and does not erase the product relay-state policy.
-11. GPIO8 WS2812 shows commissioning, operational, Thread transition and fault states while GPIO2 continues to mirror the relay.
-12. BBB commissions a factory-new node through BLE and supplies its active Thread dataset.
-13. BBB discovers the On/Off Plug-in Unit endpoint and invokes Off/On/Toggle through cluster `0x0006`.
-14. A local GPIO9 short press produces an unsolicited OnOff subscription report through BBB to WebUI.
-15. Node, OTBR, Matter Controller and Gateway restart tests recover inventory, CASE connectivity, subscriptions and final state.
-16. Loss of BBB/Thread does not block local button-to-relay operation.
-17. The five-second gesture opens both the Rhophi claim window and initial Matter window; a non-gestured node is not claimable.
-18. A phone discovers and identifies exactly the selected Rhophi device.
-19. BBB accepts a valid HMAC proof and rejects replay of the same nonce.
-20. Five proof issuances trigger persistent lockout; power cycling does not clear it.
-21. A second phone cannot read the owner connection's response, cancel it or consume its claim session.
-22. PASE and attestation succeed with per-device manufacturing material; no grant or credential appears in logs.
-23. Thread Operational Dataset commissioning attaches the node to OTBR without using MQTT.
-24. The temporary mobile fabric opens an Enhanced Commissioning Window and BBB commissions on-network as a second fabric.
-25. BBB describe/read/subscribe succeeds and a local GPIO9 press reaches Mobile/WebUI as OnOff state.
-26. Temporary mobile fabric removal happens only after BBB is operational.
-27. Forced removal failure leaves `CLEANUP_PENDING`; retry succeeds without losing the BBB fabric.
-28. Two devices from one manufacturing batch reject each other's proof and have distinct claim IDs, secrets, discriminators and passcodes.
+## Node local acceptance
 
-Verified by automated gates in the current implementation session: host tests, Matter compilation/link, dashboard build/tests/bundles and mobile TypeScript build/tests. Physical claim, native Android commissioner, relay observation, long-press UX and BBB commissioning/subscription remain pending HIL. Android HIL is additionally blocked until the pinned ConnectedHomeIP Android submodules and production attestation inputs are available.
+- [ ] Erased default NVS boot với relay GPIO10 và LED GPIO2 OFF.
+- [ ] Short press GPIO9 toggle đúng một lần; 20 lần không miss/duplicate.
+- [ ] Commissioning hold theo `ButtonInputConfig` không tạo short-press toggle.
+- [ ] Factory-reset hold chỉ chạy sau ngưỡng và không xóa factory partition.
+- [ ] Relay ON/OFF survive power cycle.
+- [ ] GPIO10 không chatter lúc reset; hardware fail-safe bias được đo.
+- [ ] WS2812 thể hiện commissioning/Thread/fault; GPIO2 vẫn mirror relay.
+- [ ] Mất BBB/Thread không chặn local button-to-relay.
 
-No test in this directory may flash, erase, or reset a board unless the caller explicitly enables the hardware runner and selects the serial/debug probe.
+## Claim acceptance
+
+- [ ] Matter window và Rhophi claim window mở khi fabric count bằng 0.
+- [ ] Phone scan/identify đúng node; GATT cache/reconnect không làm node biến mất.
+- [ ] Identity 36 byte và product/claim ID đúng registry.
+- [ ] Valid HMAC proof được BFF chấp nhận; replay nonce bị từ chối.
+- [ ] Backend rate-limit invalid proof; valid proof issuance không gây device lockout.
+- [ ] Connection khác không đọc/cancel claim session đang được bind.
+- [ ] Không claim secret, proof, grant hoặc dataset xuất hiện trong log/evidence.
+
+## Matter commissioning acceptance
+
+- [ ] Android thực hiện BLE PASE và attestation bằng material lab/production phù hợp.
+- [ ] Android cấp active Thread dataset và node attach OTBR mà không qua MQTT.
+- [ ] Android có IPv6 OMR route trước operational discovery.
+- [ ] Temporary mobile fabric mở ECW.
+- [ ] BBB `commissionOnNetwork` tạo permanent fabric qua Thread/IP.
+- [ ] BBB `describeNode`, OnOff read và subscribe thành công.
+- [ ] Mobile xóa temporary fabric chỉ sau khi BBB operational.
+- [ ] Forced cleanup failure vào `CLEANUP_PENDING`; retry không mất BBB fabric.
+- [ ] Fabric table cuối chỉ còn BBB fabric.
+
+## UI và recovery acceptance
+
+- [ ] `/api/devices` hiển thị node/endpoint OnOff động.
+- [ ] WebUI/mobile Off/On/Toggle đổi relay.
+- [ ] Local short press tạo subscription report tới WebUI/mobile.
+- [ ] Restart node, OTBR, controller, gateway và BFF phục hồi inventory/CASE/subscription.
+- [ ] Remove và recommission thành công.
+- [ ] Hai thiết bị manufacturing batch có material riêng và không chấp nhận proof chéo.
+
+## Trạng thái 2026-08-19
+
+Automated host/dashboard/mobile build và tests đã pass trong phiên tích hợp. Claim, PASE, attestation, Thread attach, IPv6 route và nhiều stage commissioning đã được quan sát trên hardware. ECW → BBB permanent fabric → temporary fabric cleanup → inventory/OnOff/restart vẫn phải hoàn tất trong một clean acceptance run trước khi đánh HIL pass.

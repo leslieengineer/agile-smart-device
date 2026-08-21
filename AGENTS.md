@@ -2,10 +2,12 @@
 
 Before changing firmware, read:
 
-1. `docs/rules/architecture.md`
-2. `docs/rules/coding-standards.md`
-3. `docs/rules/dependencies.md`
-4. `docs/checklists/level5-change.md` for product/application work
+1. `docs/README.md` for authoritative system status and navigation
+2. `docs/rules/architecture.md`
+3. `docs/rules/coding-standards.md`
+4. `docs/rules/dependencies.md`
+5. `docs/checklists/level5-change.md` for product/application work
+6. `docs/checklists/doc-change.md` before changing system behavior or documentation
 
 Required behavior:
 

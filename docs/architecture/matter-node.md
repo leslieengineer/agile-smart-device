@@ -1,5 +1,7 @@
 # ESP32-C6 Matter-over-Thread node
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [firmware authoritative](../02-firmware-esp32c6.md) và [claim GATT](../03-rhophi-claim-gatt.md). Không dùng file này làm căn cứ acceptance.
+
 ## Scope
 
 The production node path is a Matter On/Off Plug-in Unit over Thread. MQTT and the WebUI JSON envelope terminate on the BBB Gateway and are not implemented in node firmware.

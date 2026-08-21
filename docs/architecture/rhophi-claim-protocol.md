@@ -1,5 +1,7 @@
 # Rhophi claim protocol v1
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [Rhophi claim GATT authoritative](../03-rhophi-claim-gatt.md).
+
 This contract is shared by the ESP32-C6 firmware, the native mobile commissioner, and the BBB provisioning service. Matter setup credentials and the Thread Operational Dataset are never carried by this GATT service.
 
 ## Discovery and physical presence

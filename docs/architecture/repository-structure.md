@@ -1,5 +1,7 @@
 # Cấu trúc repository `agile-smart-device`
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [repository authoritative](../13-thuat-ngu-ownership-repository.md).
+
 Tài liệu này mô tả cấu trúc repository theo góc nhìn kiến trúc. Mục tiêu là trả lời bốn câu hỏi cho từng nhóm thư mục:
 
 1. Thành phần đó dùng để làm gì?

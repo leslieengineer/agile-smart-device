@@ -13,6 +13,8 @@ date: 2026-08-15
 
 # Architecture Refactor Proposal — Superseded by Incremental Plan
 
+> **LEGACY / NON-AUTHORITATIVE.** Proposal này không phải as-built documentation. Dùng [docs authoritative](docs/README.md).
+
 > **Status:** Partially accepted. The dependency rules and Layer 5 readability goals are retained, but the wholesale `L1_...L5_` directory migration, `inc/` rename, framework facade, blanket globbing, Matter/AWS placeholders, and direct `EXTRA_COMPONENT_DIRS` mapping were rejected. The authoritative rules are `AGENTS.md` and `docs/rules/`; the accepted execution plan is `.embedder/plans/1786805259209-misty-falcon.md`.
 
 # ORIGINAL SYSTEM PROMPT & ARCHITECTURE CONTEXT FOR AI COPILOT

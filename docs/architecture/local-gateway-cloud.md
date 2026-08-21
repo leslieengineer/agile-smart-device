@@ -1,5 +1,7 @@
 # Local Gateway Before Cloud
 
+> **LEGACY / NON-AUTHORITATIVE.** Dùng [BBB architecture](../05-bbb-gateway-controller-webui.md).
+
 ## System topology
 
 Bản đồ runtime, process, protocol, port và data flow hiện tại nằm tại [kiến trúc toàn hệ thống](system-overview.md).
