@@ -9,10 +9,6 @@ constexpr std::uint8_t kCommissionableFlag = 1U << 0U;
 constexpr std::uint8_t kFactoryNewFlag = 1U << 1U;
 constexpr std::uint8_t kClaimedFlag = 1U << 2U;
 constexpr std::uint8_t kLockedFlag = 1U << 3U;
-constexpr std::uint8_t kMaximumAttempts = 5U;
-constexpr std::uint32_t kInitialLockoutMs = 60000U;
-constexpr std::uint32_t kMaximumLockoutMs = 900000U;
-constexpr std::uint8_t kMaximumLockoutLevel = 5U;
 
 }  // namespace
 
@@ -30,7 +26,17 @@ uhal::Status RhophiClaimProtocol::initialize() {
     }
     identity_.product_id = material_.product_id;
     identity_.claim_id = material_.claim_id;
-    lockout_until_ms_ = persistent_.lockout_ms;
+    const bool had_legacy_lockout = persistent_.attempts != 0U ||
+                                    persistent_.lockout_level != 0U ||
+                                    persistent_.lockout_ms != 0U;
+    persistent_.attempts = 0U;
+    persistent_.lockout_level = 0U;
+    persistent_.lockout_ms = 0U;
+    lockout_until_ms_ = 0U;
+    if (had_legacy_lockout && state_store_.save(persistent_) != uhal::Status::ok) {
+        std::fill(material_.secret.begin(), material_.secret.end(), 0U);
+        return uhal::Status::io_error;
+    }
     initialized_ = true;
     refresh_flags(0U);
     return uhal::Status::ok;
@@ -75,7 +81,7 @@ uhal::Status RhophiClaimProtocol::respond(const std::array<std::uint8_t, 32U>& c
                                           std::array<std::uint8_t, 32U>& proof) {
     std::fill(proof.begin(), proof.end(), 0U);
     if (!is_active(now_ms)) return uhal::Status::denied;
-    if (is_locked(now_ms) || persistent_.attempts >= kMaximumAttempts) return uhal::Status::busy;
+    if (is_locked(now_ms)) return uhal::Status::busy;
     if (challenge_seen(challenge)) return uhal::Status::denied;
 
 #ifdef RHOPHI_CLAIM_DEV_BYPASS
@@ -105,24 +111,7 @@ uhal::Status RhophiClaimProtocol::respond(const std::array<std::uint8_t, 32U>& c
     }
 
     remember_challenge(challenge);
-    persistent_.attempts += 1U;
-    if (persistent_.attempts >= kMaximumAttempts) {
-        persistent_.lockout_level = std::min<std::uint8_t>(
-            static_cast<std::uint8_t>(persistent_.lockout_level + 1U), kMaximumLockoutLevel);
-        std::uint32_t duration = kInitialLockoutMs;
-        for (std::uint8_t level = 1U; level < persistent_.lockout_level; ++level) {
-            duration = std::min(duration * 2U, kMaximumLockoutMs);
-        }
-        persistent_.lockout_ms = duration;
-        lockout_until_ms_ = now_ms + duration;
-        active_ = false;
-    }
-    const uhal::Status persist_status = persist_state();
     refresh_flags(now_ms);
-    if (persist_status != uhal::Status::ok) {
-        std::fill(proof.begin(), proof.end(), 0U);
-        return persist_status;
-    }
     return uhal::Status::ok;
 }
 

@@ -6,6 +6,7 @@
 #include "esp_random.h"
 #include "esp_mac.h"
 #include "mbedtls/md.h"
+#include "psa/crypto.h"
 #include "nvs.h"
 
 namespace smart_device {
@@ -82,9 +83,23 @@ uhal::Status EspClaimCrypto::hmac_sha256(const std::uint8_t* key, std::size_t ke
     if (key == nullptr || message == nullptr || output == nullptr || output_size != 32U) {
         return uhal::Status::invalid_argument;
     }
-    const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    if (info == nullptr) return uhal::Status::unsupported;
-    return mbedtls_md_hmac(info, key, key_size, message, message_size, output) == 0
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
+    psa_set_key_bits(&attributes, key_size * 8U);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_HMAC(PSA_ALG_SHA_256));
+
+    psa_key_id_t key_id{};
+    if (psa_import_key(&attributes, key, key_size, &key_id) != PSA_SUCCESS) {
+        psa_reset_key_attributes(&attributes);
+        return uhal::Status::io_error;
+    }
+    std::size_t written = 0U;
+    const psa_status_t status = psa_mac_compute(
+        key_id, PSA_ALG_HMAC(PSA_ALG_SHA_256), message, message_size, output, output_size, &written);
+    (void)psa_destroy_key(key_id);
+    psa_reset_key_attributes(&attributes);
+    return status == PSA_SUCCESS && written == output_size
                ? uhal::Status::ok
                : uhal::Status::io_error;
 }

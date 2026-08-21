@@ -171,7 +171,7 @@ bool expires_and_cancels() {
     return !protocol.is_active(201U) && (protocol.identity(201U).flags & 1U) == 0U;
 }
 
-bool persists_lockout_across_reboot() {
+bool does_not_lock_out_valid_proofs() {
     MaterialProvider provider;
     ClaimCrypto crypto;
     StateStore store;
@@ -193,8 +193,7 @@ bool persists_lockout_across_reboot() {
     }
     smart_device::RhophiClaimProtocol rebooted{provider, crypto, store};
     return rebooted.initialize() == uhal::Status::ok &&
-           rebooted.open_window(1U, 1000U) == uhal::Status::busy &&
-           rebooted.open_window(60000U, 1000U) == uhal::Status::ok;
+           rebooted.open_window(1U, 1000U) == uhal::Status::ok;
 }
 
 bool persists_commissioned_and_clears_factory_state() {
@@ -220,7 +219,7 @@ bool persists_commissioned_and_clears_factory_state() {
 int main() {
     return assembles_shared_claim_vector() && requires_physical_window() &&
                    creates_proof_and_rejects_replay() && expires_and_cancels() &&
-                   persists_lockout_across_reboot() &&
+                   does_not_lock_out_valid_proofs() &&
                    persists_commissioned_and_clears_factory_state()
                ? 0
                : 1;

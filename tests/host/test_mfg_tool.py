@@ -23,7 +23,10 @@ def decode(value: str) -> bytes:
 
 class ManufacturingToolTests(unittest.TestCase):
     def test_unique_valid_device_material(self):
-        records = [generate_record(f"serial-{index:03d}", 1) for index in range(100)]
+        records = [
+            generate_record(f"serial-{index:03d}", f"02:00:00:00:{index // 256:02x}:{index % 256:02x}", 1)
+            for index in range(100)
+        ]
         self.assertEqual(len({record["claim_id"] for record in records}), 100)
         self.assertEqual(len({record["claim_secret"] for record in records}), 100)
         self.assertEqual(len({record["setup_passcode"] for record in records}), 100)
@@ -36,7 +39,7 @@ class ManufacturingToolTests(unittest.TestCase):
 
     def test_registry_matches_backend_aes_gcm_contract(self):
         master = bytes(range(32))
-        source = generate_record("device-001", 1)
+        source = generate_record("device-001", "02:00:00:00:00:01", 1)
         encrypted = encrypt_record(master, source)
         claim_id = encrypted["claim_id"]
         key = HKDF(

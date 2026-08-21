@@ -169,6 +169,18 @@ void MatterNode::device_event_callback(const ChipDeviceEvent* event, intptr_t pr
             break;
         case chip::DeviceLayer::DeviceEventType::kCommissioningWindowOpened:
             ESP_LOGI(kTag, "Commissioning window opened");
+            if (self->claim_ready_ &&
+                chip::Server::GetInstance().GetFabricTable().FabricCount() == 0U) {
+                const std::uint32_t now_ms =
+                    static_cast<std::uint32_t>(esp_timer_get_time() / 1000LL);
+                const uhal::Status status =
+                    self->claim_gatt_.open_window(now_ms, kClaimWindowDurationMs);
+                if (status == uhal::Status::ok) {
+                    ESP_LOGI(kTag, "Rhophi claim window opened");
+                } else {
+                    ESP_LOGW(kTag, "Failed to open Rhophi claim window with Matter window");
+                }
+            }
             self->set_indicator(24U, 12U, 0U);
             break;
         case chip::DeviceLayer::DeviceEventType::kCommissioningWindowClosed:
