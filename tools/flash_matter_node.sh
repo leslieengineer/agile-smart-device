@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export IDF_PATH="${IDF_PATH:-/opt/esp/esp-idf}"
-export ESP_MATTER_PATH="${ESP_MATTER_PATH:-/opt/esp/esp-matter}"
-PROJECT_DIR="${PROJECT_DIR:-/mnt/c/Users/lesli/WS/agile-smart-device}"
-BUILD_DIR="${BUILD_DIR:-/opt/esp/build/agile-smart-device-matter-v3}"
-PORT="${PORT:-/dev/ttyS7}"
+export IDF_PATH="${IDF_PATH:-${HOME}/esp/v6.0.2/esp-idf}"
+export ESP_MATTER_PATH="${ESP_MATTER_PATH:-${HOME}/esp-matter}"
+PROJECT_DIR="${PROJECT_DIR:-${HOME}/WS/agile-smart-device}"
+BUILD_DIR="${BUILD_DIR:-${PROJECT_DIR}/build-matter}"
+PORT="${PORT:-/dev/ttyACM1}"
 
 source "${IDF_PATH}/export.sh"
 source "${ESP_MATTER_PATH}/export.sh"

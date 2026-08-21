@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export IDF_PATH="${IDF_PATH:-/opt/esp/esp-idf}"
-export ESP_MATTER_PATH="${ESP_MATTER_PATH:-/opt/esp/esp-matter}"
-PROJECT_DIR="${PROJECT_DIR:-/mnt/c/Users/lesli/WS/agile-smart-device}"
-BUILD_DIR="${BUILD_DIR:-/opt/esp/build/agile-smart-device-matter-v3}"
+export IDF_PATH="${IDF_PATH:-${HOME}/esp/v6.0.2/esp-idf}"
+export ESP_MATTER_PATH="${ESP_MATTER_PATH:-${HOME}/esp-matter}"
+PROJECT_DIR="${PROJECT_DIR:-${HOME}/WS/agile-smart-device}"
+BUILD_DIR="${BUILD_DIR:-${PROJECT_DIR}/build-matter}"
 
-EXPECTED_IDF_SHA="b774170ff46c393eeb5e495ea37936038d3f4f4f"
-EXPECTED_MATTER_SHA="c91ddfbb08ccc74bb73dd6eca7422178f48b75e1"
+EXPECTED_IDF_SHA="662a3be354759d9487bf4b1a629fadb766cb1800"
+EXPECTED_MATTER_SHA="881a8ff5cada10a197481d8e332bf41347702c27"
 
 if [[ "$(git -C "${IDF_PATH}" rev-parse HEAD)" != "${EXPECTED_IDF_SHA}" ]]; then
     echo "ESP-IDF must be pinned to ${EXPECTED_IDF_SHA}" >&2
