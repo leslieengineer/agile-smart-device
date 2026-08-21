@@ -10,3 +10,7 @@ fctry*.bin
 *_partition.bin
 tools/mfg/out/
 .cache/build-matter/
+build-matter/
+.cache/
+__pycache__/
+*.pyc
