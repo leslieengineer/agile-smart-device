@@ -7,5 +7,17 @@
     "idf.espIdfPath": "/home/leslie/esp/v6.1-rc1/esp-idf",
     "idf.toolsPath": "/home/leslie/.espressif",
     "idf.pythonInstallPath": "/usr/bin/python3",
-    "idf.port": "/dev/ttyACM2"
+    "idf.port": "/dev/ttyACM2",
+    "C_Cpp.errorSquiggles": "disabled",
+
+    // --- Added for Clang-Format ---
+    "[cpp]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "clang-format.style": "file",
+    "editor.formatOnSave": true,
+    "clang-format.executable": "/usr/bin/clang-format"
 }

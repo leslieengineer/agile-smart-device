@@ -2,14 +2,17 @@
 
 #include "RhophiClaimProtocol.hpp"
 
-namespace smart_device {
+namespace smart_device
+{
 
-class NvsClaimMaterialProvider final : public IClaimMaterialProvider {
+class NvsClaimMaterialProvider final : public IClaimMaterialProvider
+{
 public:
     uhal::Status load(ClaimMaterial& material) override;
 };
 
-class EspClaimCrypto final : public IClaimCrypto {
+class EspClaimCrypto final : public IClaimCrypto
+{
 public:
     uhal::Status random(std::uint8_t* output, std::size_t size) override;
     uhal::Status hmac_sha256(const std::uint8_t* key, std::size_t key_size,

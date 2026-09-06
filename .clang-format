@@ -31,3 +31,11 @@ AllowShortFunctionsOnASingleLine: Empty
 
 # Format constructor initializer lists on one line or one per line
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# --- Added to move curly braces to a new line ---
+# Forces braces onto their own line for control statements, classes, and functions
+BreakBeforeBraces: Allman
+
+# Prevent short if-statements from staying on a single line
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never

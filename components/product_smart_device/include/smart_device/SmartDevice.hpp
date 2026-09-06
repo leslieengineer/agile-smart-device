@@ -2,7 +2,8 @@
 
 #include <uhal/Status.hpp>
 
-namespace smart_device {
+namespace smart_device
+{
 
 uhal::Status start();
 

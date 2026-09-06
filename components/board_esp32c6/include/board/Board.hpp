@@ -5,9 +5,11 @@
 #include "Esp32C6Clock.hpp"
 #include "Esp32C6Gpio.hpp"
 
-namespace board {
+namespace board
+{
 
-class Board final {
+class Board final
+{
 public:
     Board();
 

@@ -3,18 +3,21 @@
 #include <services/BinarySwitchService.hpp>
 #include <uhal/Status.hpp>
 
-namespace smart_device {
+namespace smart_device
+{
 
-class ISwitchStateObserver {
+class ISwitchStateObserver
+{
 public:
-    virtual ~ISwitchStateObserver() = default;
+    virtual ~ISwitchStateObserver()               = default;
     virtual void on_switch_state_changed(bool on) = 0;
 };
 
-class SmartDeviceApplication final {
+class SmartDeviceApplication final
+{
 public:
     explicit SmartDeviceApplication(services::BinarySwitchService& binary_switch,
-                                    ISwitchStateObserver* observer = nullptr);
+                                    ISwitchStateObserver*          observer = nullptr);
 
     uhal::Status initialize();
     uhal::Status on_short_press();

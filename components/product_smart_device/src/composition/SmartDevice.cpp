@@ -10,34 +10,44 @@
 #endif
 #include "nvs_flash.h"
 
-namespace smart_device {
-namespace {
+namespace smart_device
+{
+namespace
+{
 constexpr char kFactoryPartition[] = "fctry";
 
-uhal::Status initialize_nvs() {
+uhal::Status initialize_nvs()
+{
     esp_err_t error = nvs_flash_init();
-    if (error == ESP_ERR_NVS_NO_FREE_PAGES || error == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        if (nvs_flash_erase() != ESP_OK) return uhal::Status::io_error;
+    if (error == ESP_ERR_NVS_NO_FREE_PAGES || error == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        if (nvs_flash_erase() != ESP_OK)
+            return uhal::Status::io_error;
         error = nvs_flash_init();
     }
     return error == ESP_OK ? uhal::Status::ok : uhal::Status::io_error;
 }
 
-uhal::Status initialize_factory_nvs() {
+uhal::Status initialize_factory_nvs()
+{
     return nvs_flash_init_partition(kFactoryPartition) == ESP_OK ? uhal::Status::ok
                                                                  : uhal::Status::io_error;
 }
 
 }  // namespace
 
-uhal::Status start() {
-    if (initialize_nvs() != uhal::Status::ok) return uhal::Status::io_error;
+uhal::Status start()
+{
+    if (initialize_nvs() != uhal::Status::ok)
+        return uhal::Status::io_error;
 #if defined(SMART_DEVICE_MATTER_NODE)
-    if (initialize_factory_nvs() != uhal::Status::ok) return uhal::Status::io_error;
+    if (initialize_factory_nvs() != uhal::Status::ok)
+        return uhal::Status::io_error;
 #endif
 
     static board::Board board;
-    if (board.initialize() != uhal::Status::ok) return uhal::Status::io_error;
+    if (board.initialize() != uhal::Status::ok)
+        return uhal::Status::io_error;
 
     static NvsBinaryStateStore           store;
     static services::BinarySwitchService service{board.relay(), board.led(), store};
@@ -51,8 +61,10 @@ uhal::Status start() {
     static SwitchRuntime          runtime{board, application};
 #endif
 
-    if (application.initialize() != uhal::Status::ok) return uhal::Status::io_error;
-    if (runtime.start() != uhal::Status::ok) return uhal::Status::io_error;
+    if (application.initialize() != uhal::Status::ok)
+        return uhal::Status::io_error;
+    if (runtime.start() != uhal::Status::ok)
+        return uhal::Status::io_error;
 #if defined(SMART_DEVICE_MATTER_NODE)
     return matter.start();
 #else

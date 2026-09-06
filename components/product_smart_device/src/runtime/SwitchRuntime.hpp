@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cstdint>
-
 #include <board/Board.hpp>
+#include <cstdint>
 #include <libraries/ButtonInput.hpp>
 #include <smart_device/SmartDeviceApplication.hpp>
 
@@ -10,16 +9,19 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-namespace smart_device {
+namespace smart_device
+{
 
-class INodeLifecycleActions {
+class INodeLifecycleActions
+{
 public:
-    virtual ~INodeLifecycleActions() = default;
+    virtual ~INodeLifecycleActions()                 = default;
     virtual uhal::Status open_commissioning_window() = 0;
-    virtual uhal::Status factory_reset() = 0;
+    virtual uhal::Status factory_reset()             = 0;
 };
 
-class SwitchRuntime final {
+class SwitchRuntime final
+{
 public:
     SwitchRuntime(board::Board& board, SmartDeviceApplication& application,
                   INodeLifecycleActions* lifecycle = nullptr);
@@ -27,9 +29,14 @@ public:
     uhal::Status post_set_switch(bool on);
 
 private:
-    enum class EventType : std::uint8_t { button_edge, set_switch };
+    enum class EventType : std::uint8_t
+    {
+        button_edge,
+        set_switch
+    };
 
-    struct Event {
+    struct Event
+    {
         EventType type = EventType::button_edge;
         bool      on   = false;
     };

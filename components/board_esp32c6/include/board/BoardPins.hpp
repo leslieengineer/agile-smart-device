@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-namespace board {
+namespace board
+{
 
 inline constexpr std::uint8_t kButtonPin       = 9U;
 inline constexpr std::uint8_t kRelayPin        = 10U;

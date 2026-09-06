@@ -1,20 +1,21 @@
 #pragma once
 
 #include <atomic>
-
 #include <services/IBinaryStateStore.hpp>
 
 #include "esp_timer.h"
 
-namespace smart_device {
+namespace smart_device
+{
 
-class NvsBinaryStateStore final : public services::IBinaryStateStore {
+class NvsBinaryStateStore final : public services::IBinaryStateStore
+{
 public:
     uhal::Status load(services::BinaryState& state) override;
     uhal::Status save(const services::BinaryState& state) override;
 
 private:
-    static void flush_timer_callback(void* context);
+    static void  flush_timer_callback(void* context);
     uhal::Status initialize_timer();
     uhal::Status commit(bool on);
 
