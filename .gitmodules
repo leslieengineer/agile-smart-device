@@ -1,9 +1,3 @@
 [submodule "external/agile-firmware-framework"]
 	path = external/agile-firmware-framework
 	url = git@github.com:leslieengineer/agile-firmware-framework.git
-[submodule "dashboard-reference"]
-	path = dashboard-reference
-	url = git@github.com:leslieengineer/agile-dashboard.git
-[submodule "mobileapp-reference"]
-	path = mobileapp-reference
-	url = git@github.com:leslieengineer/agile-mobileapp.git
