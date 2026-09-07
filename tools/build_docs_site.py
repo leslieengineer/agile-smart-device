@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 from pathlib import Path
 
@@ -21,16 +22,16 @@ def build(root: Path, output: Path) -> None:
     diagrams.mkdir(exist_ok=True)
     component_graph = render_components(collect(root), "CMakeLists.txt")
     spec_path = root / "docs" / "diagrams" / "spec" / "firmware-flows.json"
-    import json
     flow_graph = render_flows(json.loads(spec_path.read_text(encoding="utf-8")))
     diagrams.joinpath("firmware-components.mmd").write_text(component_graph, encoding="utf-8")
     diagrams.joinpath("firmware-flows.md").write_text(flow_graph, encoding="utf-8")
 
     component_mermaid = "\n".join(component_graph.splitlines()[2:])
+    flow_titles = re.findall(r"^## (.+)$", flow_graph, re.MULTILINE)
     flow_blocks = MERMAID_BLOCK.findall(flow_graph)
     flow_html = "\n".join(
         f'<section><h2>{html.escape(title)}</h2><div class="mermaid">{html.escape(block)}</div></section>'
-        for title, block in zip(("Product startup", "Rhophi claim challenge"), flow_blocks)
+      for title, block in zip(flow_titles, flow_blocks)
     )
     page = f"""<!doctype html>
 <html lang="en">

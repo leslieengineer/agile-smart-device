@@ -14,6 +14,11 @@ LINKS = re.compile(r"\btarget_link_libraries\s*\(\s*[^\s)]+\s+(.*?)\)", re.IGNOR
 REGISTER = re.compile(r"\bidf_component_register\s*\((.*?)\)", re.IGNORECASE | re.DOTALL)
 SET_VARIABLE = re.compile(r"\bset\s*\(\s*([A-Z][A-Z0-9_]*)\s+([^)]*)\)", re.IGNORECASE | re.DOTALL)
 TOKEN = re.compile(r"[A-Za-z0-9_.:${}/+\-]+")
+COMMON_COMPONENTS = {
+    "bounded_serialization", "fixed_ring_buffer", "retry_policy", "services_types",
+    "uhal_core", "uhal_libraries", "uhal_services",
+}
+LAYER_ORDER = ("Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Common / Utilities", "Other")
 
 
 @dataclass(frozen=True)
@@ -40,11 +45,11 @@ def layer_for(path: Path, root: Path) -> str:
     if relative.startswith("components/product_"):
         return "Layer 5"
     if relative.startswith("components/board_"):
-        return "Layer 1/3"
+        return "Layer 3"
     if "/components/uhal/" in "/" + relative:
         return "Layer 2"
     if "/components/platform/" in "/" + relative:
-        return "Layer 1/3"
+        return "Layer 1"
     if "/components/" in "/" + relative:
         return "Layer 4"
     return "Other"
@@ -91,9 +96,21 @@ def collect(root: Path) -> list[Component]:
 
 def render(components: list[Component], source: str) -> str:
     lines = ["%% GENERATED FILE - DO NOT EDIT.", f"%% Source: {source}", "flowchart LR"]
+    groups: dict[str, list[Component]] = {layer: [] for layer in LAYER_ORDER}
     for component in components:
-        node = component.name.replace("-", "_").replace(".", "_")
-        lines.append(f'    {node}["{component.name}<br/>{component.layer}"]')
+        layer = "Common / Utilities" if component.name in COMMON_COMPONENTS else component.layer
+        groups.setdefault(layer, []).append(component)
+
+    for layer in LAYER_ORDER:
+        if not groups[layer]:
+            continue
+        group_id = re.sub(r"[^A-Za-z0-9]", "", layer)
+        lines.append(f'    subgraph {group_id}["{layer}"]')
+        for component in groups[layer]:
+            node = component.name.replace("-", "_").replace(".", "_")
+            lines.append(f'        {node}["{component.name}"]')
+        lines.append("    end")
+
     known = {component.name for component in components}
     def resolve(dependency: str) -> str:
         if dependency in known:
@@ -101,9 +118,19 @@ def render(components: list[Component], source: str) -> str:
         alias = dependency.removeprefix("framework_")
         return alias if alias in known else dependency
 
+    def visible(component: Component, dependency: str) -> bool:
+        target = next((item for item in components if item.name == dependency), None)
+        if target is None or target.name in COMMON_COMPONENTS:
+            return False
+        source_is_business = component.layer in {"Layer 4", "Layer 5"}
+        target_is_boundary = target.layer in {"Layer 1", "Layer 2", "Layer 3"}
+        return source_is_business and (target_is_boundary or target.layer in {"Layer 4", "Layer 5"})
+
     edges = sorted((component.name, resolve(dependency)) for component in components
                    for dependency in component.dependencies
-                   if resolve(dependency) in known and resolve(dependency) != component.name)
+                   if resolve(dependency) in known
+                   and resolve(dependency) != component.name
+                   and visible(component, resolve(dependency)))
     for source_name, dependency in edges:
         source_node = source_name.replace("-", "_").replace(".", "_")
         dependency_node = dependency.replace("-", "_").replace(".", "_")

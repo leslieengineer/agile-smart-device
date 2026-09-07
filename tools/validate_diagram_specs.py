@@ -28,7 +28,7 @@ def validate(spec: dict, root: Path) -> list[str]:
                 continue
             if node.get("symbol", "") not in path.read_text(encoding="utf-8"):
                 errors.append(f"{flow_id}/{node_id}: symbol not found: {node.get('symbol', '')}")
-        for edge in flow.get("edges", []):
+        for edge in flow.get("edges", []) + flow.get("steps", []):
             if edge.get("from") not in node_ids or edge.get("to") not in node_ids:
                 errors.append(f"{flow_id}: edge references an unknown node")
     return errors
@@ -39,10 +39,12 @@ def render(spec: dict) -> str:
                         "Source: docs/diagrams/spec/firmware-flows.json -->"]
     for flow in spec.get("flows", []):
         lines.extend(["", f"## {flow['title']}", "", "```mermaid", "sequenceDiagram"])
+        lines.append("    autonumber")
         for node in flow["nodes"]:
-            lines.append(f"    participant {node['id']} as {node['symbol']}")
-        for edge in flow.get("edges", []):
-            lines.append(f"    {edge['from']}->>{edge['to']}: {edge['label']}")
+            lines.append(f"    participant {node['id']} as {node.get('label', node['symbol'])}")
+        for edge in flow.get("edges", []) + flow.get("steps", []):
+            arrow = "-->>" if edge.get("async") else "->>"
+            lines.append(f"    {edge['from']}{arrow}{edge['to']}: {edge['label']}")
         lines.append("```")
     return "\n".join(lines) + "\n"
 

@@ -4,13 +4,34 @@
       "id": "startup",
       "title": "Product startup",
       "nodes": [
-        {"id": "composition", "file": "components/product_smart_device/src/composition/SmartDevice.cpp", "symbol": "uhal::Status start()"},
-        {"id": "runtime", "file": "components/product_smart_device/src/runtime/SwitchRuntime.cpp", "symbol": "SwitchRuntime::start"},
-        {"id": "application", "file": "components/product_smart_device/include/smart_device/SmartDeviceApplication.hpp", "symbol": "class SmartDeviceApplication"}
+        {"id": "main", "label": "app_main", "file": "main/main.cpp", "symbol": "app_main"},
+        {"id": "smart_device", "label": "SmartDevice composition", "file": "components/product_smart_device/src/composition/SmartDevice.cpp", "symbol": "uhal::Status start()"},
+        {"id": "nvs", "label": "NVS module", "file": "components/product_smart_device/src/composition/SmartDevice.cpp", "symbol": "initialize_nvs"},
+        {"id": "board", "label": "board::Board", "file": "components/board_esp32c6/include/board/Board.hpp", "symbol": "class Board"},
+        {"id": "store", "label": "NvsBinaryStateStore", "file": "components/product_smart_device/src/adapters/NvsBinaryStateStore.hpp", "symbol": "class NvsBinaryStateStore"},
+        {"id": "service", "label": "BinarySwitchService", "file": "external/agile-firmware-framework/components/services/binary_switch/include/services/BinarySwitchService.hpp", "symbol": "class BinarySwitchService"},
+        {"id": "application", "label": "SmartDeviceApplication", "file": "components/product_smart_device/include/smart_device/SmartDeviceApplication.hpp", "symbol": "class SmartDeviceApplication"},
+        {"id": "runtime", "label": "SwitchRuntime", "file": "components/product_smart_device/src/runtime/SwitchRuntime.cpp", "symbol": "SwitchRuntime::start"},
+        {"id": "freertos", "label": "FreeRTOS", "file": "components/product_smart_device/src/runtime/SwitchRuntime.cpp", "symbol": "xQueueCreate"},
+        {"id": "task", "label": "switch_ctrl task", "file": "components/product_smart_device/src/runtime/SwitchRuntime.cpp", "symbol": "task_entry"},
+        {"id": "gpio", "label": "Hardware GPIO / interrupt", "file": "components/board_esp32c6/include/board/Board.hpp", "symbol": "button_interrupt"}
       ],
-      "edges": [
-        {"from": "composition", "to": "runtime", "label": "start runtime"},
-        {"from": "runtime", "to": "application", "label": "inject application"}
+      "steps": [
+        {"from": "main", "to": "smart_device", "label": "call start()"},
+        {"from": "smart_device", "to": "nvs", "label": "initialize NVS"},
+        {"from": "smart_device", "to": "board", "label": "construct and initialize()"},
+        {"from": "smart_device", "to": "store", "label": "construct persistent state adapter"},
+        {"from": "smart_device", "to": "service", "label": "construct with relay, LED and store"},
+        {"from": "smart_device", "to": "application", "label": "construct and initialize()"},
+        {"from": "smart_device", "to": "runtime", "label": "construct and start()"},
+        {"from": "runtime", "to": "freertos", "label": "xQueueCreate(depth=8)"},
+        {"from": "runtime", "to": "freertos", "label": "xTaskCreate(task_entry)"},
+        {"from": "freertos", "to": "task", "label": "activate switch_ctrl"},
+        {"from": "runtime", "to": "gpio", "label": "attach both-edge ISR and enable"},
+        {"from": "task", "to": "freertos", "label": "xQueueReceive(wait)"},
+        {"from": "gpio", "to": "freertos", "label": "ISR sends Event via queue"},
+        {"from": "freertos", "to": "task", "label": "wake task to process Event", "async": true},
+        {"from": "task", "to": "application", "label": "set_switch(event.on)"}
       ]
     },
     {

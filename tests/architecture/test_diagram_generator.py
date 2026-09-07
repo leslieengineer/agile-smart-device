@@ -37,6 +37,9 @@ def main() -> int:
             if "product_smart_device --> switch" not in output:
                 print("Expected dependency edge was not generated")
                 return 1
+        if 'subgraph Layer5["Layer 5"]' not in output:
+            print("Layer subgraph was not generated")
+            return 1
         if output != generator.render(generator.collect(root), "CMakeLists.txt"):
             print("Generator output is not deterministic")
             return 1

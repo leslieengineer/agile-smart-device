@@ -31,6 +31,12 @@ def main() -> int:
         if not errors or "symbol not found" not in errors[0]:
             print("Stale symbol was not rejected")
             return 1
+    rendered = validator.render({"flows": [{"title": "Startup", "nodes": [
+        {"id": "main", "label": "app_main", "symbol": "app_main"}],
+        "steps": [{"from": "main", "to": "main", "label": "queue", "async": True}]}]})
+    if "participant main as app_main" not in rendered or "main-->>main: queue" not in rendered:
+        print("Named participant or asynchronous message was not rendered")
+        return 1
     print("Diagram specification fixture tests passed")
     return 0
 
