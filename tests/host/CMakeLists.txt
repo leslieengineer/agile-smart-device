@@ -33,14 +33,24 @@ foreach(CHECK_NAME boundaries dynamic catalog cmake)
     add_test(
         NAME layer_${CHECK_NAME}_check
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
-                --root ${CMAKE_CURRENT_LIST_DIR}/../.. --check ${CHECK_NAME}
+        --root ${CMAKE_CURRENT_LIST_DIR}/../.. --check ${CHECK_NAME}
     )
 endforeach()
 
 add_test(
     NAME layer_checker_fixture_tests
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../architecture/test_layer_checker.py
-            --checker ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
+    --checker ${CMAKE_CURRENT_LIST_DIR}/../../tools/check_layer_boundaries.py
+)
+
+add_test(
+    NAME diagram_generator_fixture_tests
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../architecture/test_diagram_generator.py
+)
+
+add_test(
+    NAME diagram_spec_fixture_tests
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../architecture/test_diagram_specs.py
 )
 
 add_test(

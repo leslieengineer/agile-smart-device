@@ -4,7 +4,64 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+      - name: Validate documentation and architecture
+        run: |
+          python3 tools/check_docs.py
+          python3 tools/check_layer_boundaries.py --check all
+          python3 tests/architecture/test_diagram_generator.py
+          python3 tools/validate_diagram_specs.py \
+            --spec docs/diagrams/spec/firmware-flows.json
+      - name: Generate firmware component diagram
+        run: |
+          mkdir -p docs-artifact/diagrams
+          python3 tools/generate_firmware_diagrams.py \
+            --output docs-artifact/diagrams/firmware-components.mmd
+          python3 tools/validate_diagram_specs.py \
+            --spec docs/diagrams/spec/firmware-flows.json \
+            --output docs-artifact/diagrams/firmware-flows.md
+          cp docs/diagrams/README.md docs-artifact/diagrams/README.md
+          cp -r docs docs-artifact/
+      - name: Build GitHub Pages site
+        run: |
+          python3 tools/build_docs_site.py --output docs-site
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-documentation-${{ github.sha }}
+          path: docs-artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-site
+
+  deploy-pages:
+    needs: docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy documentation to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   host-tests:
     runs-on: ubuntu-latest
     steps:

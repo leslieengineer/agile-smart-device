@@ -63,6 +63,7 @@ Không suy diễn `HIL` từ việc code compile hoặc service đang active. Kh
 ## Tài liệu khác
 
 - [Quy tắc kiến trúc](rules/architecture.md)
+- [Firmware diagrams](diagrams/README.md)
 - [Coding standard](rules/coding-standards.md)
 - [Dependency policy](rules/dependencies.md)
 - [Checklist Layer 5](checklists/level5-change.md)

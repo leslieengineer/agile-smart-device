@@ -1,0 +1,28 @@
+{
+  "flows": [
+    {
+      "id": "startup",
+      "title": "Product startup",
+      "nodes": [
+        {"id": "composition", "file": "components/product_smart_device/src/composition/SmartDevice.cpp", "symbol": "uhal::Status start()"},
+        {"id": "runtime", "file": "components/product_smart_device/src/runtime/SwitchRuntime.cpp", "symbol": "SwitchRuntime::start"},
+        {"id": "application", "file": "components/product_smart_device/include/smart_device/SmartDeviceApplication.hpp", "symbol": "class SmartDeviceApplication"}
+      ],
+      "edges": [
+        {"from": "composition", "to": "runtime", "label": "start runtime"},
+        {"from": "runtime", "to": "application", "label": "inject application"}
+      ]
+    },
+    {
+      "id": "claim-challenge",
+      "title": "Rhophi claim challenge",
+      "nodes": [
+        {"id": "gatt", "file": "components/product_smart_device/src/matter/RhophiClaimGatt.cpp", "symbol": "RhophiClaimGatt::write_challenge"},
+        {"id": "protocol", "file": "components/product_smart_device/src/matter/RhophiClaimProtocol.cpp", "symbol": "RhophiClaimProtocol::respond"}
+      ],
+      "edges": [
+        {"from": "gatt", "to": "protocol", "label": "verify challenge"}
+      ]
+    }
+  ]
+}
