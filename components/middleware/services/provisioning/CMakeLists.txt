@@ -1,0 +1,3 @@
+add_library(provisioning_service STATIC src/ProvisioningService.cpp)
+target_include_directories(provisioning_service PUBLIC include)
+target_link_libraries(provisioning_service PUBLIC configuration_service services_types retry_policy)

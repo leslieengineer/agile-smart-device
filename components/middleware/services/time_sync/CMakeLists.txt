@@ -1,0 +1,3 @@
+add_library(time_sync_service STATIC src/TimeSyncService.cpp)
+target_include_directories(time_sync_service PUBLIC include)
+target_link_libraries(time_sync_service PUBLIC uhal_core retry_policy services_types)

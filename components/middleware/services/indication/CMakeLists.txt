@@ -1,0 +1,3 @@
+add_library(indication_service STATIC src/IndicationService.cpp)
+target_include_directories(indication_service PUBLIC include)
+target_link_libraries(indication_service PUBLIC services_types uhal_core)

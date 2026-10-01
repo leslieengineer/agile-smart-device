@@ -1,0 +1,2 @@
+add_library(uhal_core INTERFACE)
+target_include_directories(uhal_core INTERFACE include)

@@ -1,0 +1,9 @@
+dependencies:
+  espressif/led_strip:
+    version: "3.0.3"
+    rules:
+      - if: "idf_version >=5.5"
+
+  # Ép nâng cấp mDNS lên bản đã vá lỗi chuỗi cô lập header
+  espressif/mdns:
+    version: "^1.7.0"

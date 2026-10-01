@@ -1,0 +1,3 @@
+add_library(configuration_service STATIC src/ConfigService.cpp)
+target_include_directories(configuration_service PUBLIC include)
+target_link_libraries(configuration_service PUBLIC uhal_interfaces uhal_libraries bounded_serialization services_types)

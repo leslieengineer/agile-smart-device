@@ -1,0 +1,3 @@
+add_library(binary_switch STATIC src/BinarySwitchService.cpp)
+target_include_directories(binary_switch PUBLIC include)
+target_link_libraries(binary_switch PUBLIC uhal_interfaces)

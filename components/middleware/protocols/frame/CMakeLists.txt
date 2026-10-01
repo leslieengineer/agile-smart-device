@@ -1,0 +1,3 @@
+add_library(frame_protocol INTERFACE)
+target_include_directories(frame_protocol INTERFACE include)
+target_link_libraries(frame_protocol INTERFACE uhal_core uhal_libraries)

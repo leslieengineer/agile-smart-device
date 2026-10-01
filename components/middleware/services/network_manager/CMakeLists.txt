@@ -1,0 +1,3 @@
+add_library(network_manager STATIC src/NetworkManager.cpp)
+target_include_directories(network_manager PUBLIC include)
+target_link_libraries(network_manager PUBLIC uhal_core retry_policy services_types)

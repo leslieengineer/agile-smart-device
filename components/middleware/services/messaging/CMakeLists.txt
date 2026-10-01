@@ -1,0 +1,3 @@
+add_library(messaging_ports INTERFACE)
+target_include_directories(messaging_ports INTERFACE include)
+target_link_libraries(messaging_ports INTERFACE uhal_core services_types)

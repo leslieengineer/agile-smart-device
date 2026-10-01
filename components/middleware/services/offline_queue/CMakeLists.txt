@@ -1,0 +1,3 @@
+add_library(offline_queue INTERFACE)
+target_include_directories(offline_queue INTERFACE include)
+target_link_libraries(offline_queue INTERFACE messaging_ports fixed_ring_buffer services_types)

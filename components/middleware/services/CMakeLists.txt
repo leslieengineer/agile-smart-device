@@ -1,0 +1,3 @@
+add_library(uhal_services INTERFACE)
+target_include_directories(uhal_services INTERFACE include)
+target_link_libraries(uhal_services INTERFACE uhal_core)

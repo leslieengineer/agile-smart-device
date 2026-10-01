@@ -1,0 +1,3 @@
+add_library(health_monitor STATIC src/HealthMonitor.cpp)
+target_include_directories(health_monitor PUBLIC include)
+target_link_libraries(health_monitor PUBLIC uhal_interfaces services_types)

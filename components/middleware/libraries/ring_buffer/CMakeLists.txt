@@ -1,0 +1,2 @@
+add_library(fixed_ring_buffer INTERFACE)
+target_include_directories(fixed_ring_buffer INTERFACE include)

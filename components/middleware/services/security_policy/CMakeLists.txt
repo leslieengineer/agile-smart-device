@@ -1,0 +1,3 @@
+add_library(security_policy STATIC src/SecurityPolicy.cpp)
+target_include_directories(security_policy PUBLIC include)
+target_link_libraries(security_policy PUBLIC uhal_core services_types)

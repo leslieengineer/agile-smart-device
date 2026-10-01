@@ -1,0 +1,2 @@
+add_library(bounded_serialization INTERFACE)
+target_include_directories(bounded_serialization INTERFACE include)

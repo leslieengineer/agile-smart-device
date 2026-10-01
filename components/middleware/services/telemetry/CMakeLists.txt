@@ -1,0 +1,3 @@
+add_library(telemetry_service INTERFACE)
+target_include_directories(telemetry_service INTERFACE include)
+target_link_libraries(telemetry_service INTERFACE messaging_ports offline_queue mqtt_contract bounded_serialization)

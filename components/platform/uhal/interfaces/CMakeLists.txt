@@ -1,0 +1,3 @@
+add_library(uhal_interfaces INTERFACE)
+target_include_directories(uhal_interfaces INTERFACE include)
+target_link_libraries(uhal_interfaces INTERFACE uhal_core)

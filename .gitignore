@@ -1,16 +1,36 @@
+# --- 1. Build outputs (ESP-IDF, Matter & Host CMake/CTest) ---
 build/
+build-*/
+build_*/
+Testing/
+
+# --- 2. ESP-IDF Local Config & Component Manager ---
 sdkconfig
 sdkconfig.old
 managed_components/
 dependencies.lock
-*.log
+
+# --- 3. IDE, AI Tools & Local Caches (Đang xuất hiện trong thư mục của bạn) ---
+.vscode/
+.idea/
+.cache/
+.clangd/
+compile_commands.json
+
+# --- 4. Manufacturing, Security & Claiming Secrets ---
 *.registry.enc
 *.claim-secret
 fctry*.bin
 *_partition.bin
 tools/mfg/out/
-.cache/build-matter/
-build-matter/
-.cache/
+
+# --- 5. Python & Governance Scripts ---
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+
+# --- 6. Logs & Temporary Files ---
+*.log
+*.swp
+*~
+.DS_Store

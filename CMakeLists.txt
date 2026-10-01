@@ -1,41 +1,33 @@
 cmake_minimum_required(VERSION 3.16)
 
+# 1. Chọn profile đang được triển khai (local_switch | matter_node)
 set(PRODUCT_PROFILE "local_switch" CACHE STRING "Firmware product profile")
-set_property(CACHE PRODUCT_PROFILE PROPERTY STRINGS local_switch gateway_node matter_node)
+set_property(CACHE PRODUCT_PROFILE PROPERTY STRINGS local_switch matter_node)
+if(NOT PRODUCT_PROFILE STREQUAL "local_switch" AND NOT PRODUCT_PROFILE STREQUAL "matter_node")
+    message(FATAL_ERROR
+        "Unsupported PRODUCT_PROFILE='${PRODUCT_PROFILE}'. Supported values: local_switch, matter_node")
+endif()
 
-list(APPEND EXTRA_COMPONENT_DIRS
-    "${CMAKE_CURRENT_LIST_DIR}/imports/common/components"
-    "${CMAKE_CURRENT_LIST_DIR}/imports/local_switch/components"
-)
+# 2. Báo ESP-IDF quét thêm thư mục app/ (components/ đã tự động được quét)
+list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_CURRENT_LIST_DIR}/app")
 
-if(PRODUCT_PROFILE STREQUAL "gateway_node")
-    list(APPEND EXTRA_COMPONENT_DIRS
-        "${CMAKE_CURRENT_LIST_DIR}/imports/gateway_node/components"
-    )
-elseif(PRODUCT_PROFILE STREQUAL "matter_node")
+# 3. Nếu build Matter thì nạp SDK esp-matter từ biến môi trường
+if(PRODUCT_PROFILE STREQUAL "matter_node")
     if(NOT DEFINED ENV{ESP_MATTER_PATH})
         message(FATAL_ERROR "matter_node requires ESP_MATTER_PATH")
     endif()
-    set(ESP_MATTER_PATH "$ENV{ESP_MATTER_PATH}")
-    set(MATTER_SDK_PATH "${ESP_MATTER_PATH}/connectedhomeip/connectedhomeip")
-    if(NOT EXISTS "${MATTER_SDK_PATH}/config/esp32/components/chip/CMakeLists.txt")
-        message(FATAL_ERROR "ESP_MATTER_PATH is incomplete; initialize connectedhomeip submodules")
-    endif()
     list(APPEND EXTRA_COMPONENT_DIRS
-        "${MATTER_SDK_PATH}/config/esp32/components"
-        "${ESP_MATTER_PATH}/components"
+        "$ENV{ESP_MATTER_PATH}/connectedhomeip/connectedhomeip/config/esp32/components"
+        "$ENV{ESP_MATTER_PATH}/components"
     )
-elseif(NOT PRODUCT_PROFILE STREQUAL "local_switch")
-    message(FATAL_ERROR "Unsupported PRODUCT_PROFILE: ${PRODUCT_PROFILE}")
 endif()
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(agile_smart_device)
 
+# 4. Cờ biên dịch bắt buộc để SDK Matter (CHIP) không bị lỗi compiler
 if(PRODUCT_PROFILE STREQUAL "matter_node")
-    idf_build_set_property(CXX_COMPILE_OPTIONS
-        "-std=gnu++17;-Os;-DCHIP_HAVE_CONFIG_H;-Wno-overloaded-virtual" APPEND)
+    idf_build_set_property(CXX_COMPILE_OPTIONS "-std=gnu++17;-Os;-DCHIP_HAVE_CONFIG_H;-Wno-overloaded-virtual" APPEND)
     idf_build_set_property(C_COMPILE_OPTIONS "-Os" APPEND)
-    idf_build_set_property(COMPILE_OPTIONS
-        "-Wno-format-nonliteral;-Wno-format-security" APPEND)
+    idf_build_set_property(COMPILE_OPTIONS "-Wno-format-nonliteral;-Wno-format-security" APPEND)
 endif()

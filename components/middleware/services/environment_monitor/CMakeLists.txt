@@ -1,0 +1,3 @@
+add_library(environment_monitor STATIC src/EnvironmentMonitor.cpp)
+target_include_directories(environment_monitor PUBLIC include)
+target_link_libraries(environment_monitor PUBLIC uhal_interfaces)

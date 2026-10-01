@@ -1,0 +1,3 @@
+add_library(diagnostics_service STATIC src/DiagnosticsService.cpp)
+target_include_directories(diagnostics_service PUBLIC include)
+target_link_libraries(diagnostics_service PUBLIC uhal_core fixed_ring_buffer services_types bounded_serialization)

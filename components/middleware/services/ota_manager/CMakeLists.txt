@@ -1,0 +1,3 @@
+add_library(ota_service STATIC src/OtaService.cpp)
+target_include_directories(ota_service PUBLIC include)
+target_link_libraries(ota_service PUBLIC uhal_core services_types security_policy retry_policy)

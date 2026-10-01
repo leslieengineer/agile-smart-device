@@ -1,0 +1,2 @@
+add_library(services_types INTERFACE)
+target_include_directories(services_types INTERFACE include)

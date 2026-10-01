@@ -1,0 +1,3 @@
+add_library(command_dispatcher STATIC src/CommandDispatcher.cpp)
+target_include_directories(command_dispatcher PUBLIC include)
+target_link_libraries(command_dispatcher PUBLIC messaging_ports offline_queue mqtt_contract bounded_serialization services_types)

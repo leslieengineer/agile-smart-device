@@ -1,0 +1,3 @@
+add_library(mqtt_contract STATIC src/MqttTopics.cpp)
+target_include_directories(mqtt_contract PUBLIC include)
+target_link_libraries(mqtt_contract PUBLIC messaging_ports services_types)
