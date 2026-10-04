@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # 1. Chọn profile đang được triển khai (local_switch | matter_node)
-set(PRODUCT_PROFILE "local_switch" CACHE STRING "Firmware product profile")
+set(PRODUCT_PROFILE "matter_node" CACHE STRING "Firmware product profile")
 set_property(CACHE PRODUCT_PROFILE PROPERTY STRINGS local_switch matter_node)
 if(NOT PRODUCT_PROFILE STREQUAL "local_switch" AND NOT PRODUCT_PROFILE STREQUAL "matter_node")
     message(FATAL_ERROR
